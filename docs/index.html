@@ -84,52 +84,87 @@
       <div class="compatible-strip">
         <span>Compatible avec :</span>
         
-        <!-- Claude Code -->
         <span class="compatible-pill">
           <img src="https://img.logo.dev/claude.ai?token=pk_EOoNMgESRhS1I9FMNVcJiw" alt="Claude" class="brand-logo-img">
           Claude Code
         </span>
 
-        <!-- OpenAI Codex -->
         <span class="compatible-pill">
           <img src="https://img.logo.dev/chatgpt.com?token=pk_EOoNMgESRhS1I9FMNVcJiw" alt="OpenAI" class="brand-logo-img">
           Codex
         </span>
 
-        <!-- Antigravity / Google -->
         <span class="compatible-pill">
           <img src="https://img.logo.dev/google.com?token=pk_EOoNMgESRhS1I9FMNVcJiw" alt="Google" class="brand-logo-img">
           Antigravity
         </span>
 
-        <!-- Cursor -->
         <span class="compatible-pill">
           <img src="https://img.logo.dev/cursor.com?token=pk_EOoNMgESRhS1I9FMNVcJiw" alt="Cursor" class="brand-logo-img">
           Cursor
         </span>
 
-        <!-- Windows -->
         <span class="compatible-pill">
           <img src="https://img.logo.dev/microsoft.com?token=pk_EOoNMgESRhS1I9FMNVcJiw" alt="Windows" class="brand-logo-img">
           Windows
         </span>
 
-        <!-- Apple macOS -->
         <span class="compatible-pill">
           <img src="https://img.logo.dev/apple.com?token=pk_EOoNMgESRhS1I9FMNVcJiw" alt="macOS" class="brand-logo-img">
           macOS
         </span>
 
-        <!-- Linux -->
         <span class="compatible-pill">
           <img src="https://img.logo.dev/linux.org?token=pk_EOoNMgESRhS1I9FMNVcJiw" alt="Linux" class="brand-logo-img">
           Linux
         </span>
       </div>
 
-      <!-- Preview container -->
+      <!-- Interactive Desktop HUD Simulator for MaoMao -->
       <div class="preview-container">
-        <img src="media/demo.gif" alt="Démonstration de MaoMao en direct">
+        <div class="sim-window-bar">
+          <div class="sim-dots">
+            <span class="sim-dot red"></span>
+            <span class="sim-dot yellow"></span>
+            <span class="sim-dot green"></span>
+          </div>
+          <div class="sim-tabs">
+            <button class="sim-tab-btn active" data-scenario="agent">1. Agent Actif</button>
+            <button class="sim-tab-btn" data-scenario="permission">2. Demande 1-Clic</button>
+            <button class="sim-tab-btn" data-scenario="cloud">3. Monitoring Cloud</button>
+          </div>
+          <div>MaoMao HUD Live</div>
+        </div>
+
+        <div class="sim-desktop">
+          <!-- Dynamic Island HUD -->
+          <div id="sim-island" class="island-box">
+            <div class="island-compact">
+              <div class="island-avatar-box">
+                <img id="sim-avatar" src="media/icon.png" alt="MaoMao" class="island-avatar">
+                <span id="sim-title" class="island-title">Claude Code</span>
+              </div>
+              <div class="island-status">
+                <span id="sim-dot" class="pulse-dot"></span>
+                <span id="sim-status-text">Édition de src/main.rs...</span>
+              </div>
+            </div>
+
+            <!-- Permission Card -->
+            <div id="sim-expanded" class="island-expanded">
+              <div class="island-prompt-label">Demande d'autorisation bash :</div>
+              <div id="sim-cmd" class="island-code-snippet">npm run build && npm run test</div>
+              <div class="island-actions">
+                <button id="sim-btn-deny" class="island-btn deny">Refuser</button>
+                <button id="sim-btn-allow" class="island-btn allow">Autoriser (Entrée)</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="sim-hint">
+            💡 Cliquez sur <strong>« Autoriser »</strong> ou changez d'onglet ci-dessus pour tester l'interactivité
+          </div>
+        </div>
       </div>
     </section>
 
@@ -323,6 +358,7 @@
   </div>
 
   <script>
+    // Theme Toggle Logic
     (function() {
       const toggleBtn = document.getElementById('theme-toggle');
       const sunIcon = document.getElementById('sun-icon');
@@ -340,7 +376,6 @@
         }
       }
 
-      // Initial state
       const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
       applyTheme(currentTheme);
 
@@ -351,6 +386,102 @@
         try {
           localStorage.setItem('maomao-theme', next);
         } catch (e) {}
+      });
+    })();
+
+    // Interactive MaoMao Simulator Logic
+    (function() {
+      const tabs = document.querySelectorAll('.sim-tab-btn');
+      const avatar = document.getElementById('sim-avatar');
+      const title = document.getElementById('sim-title');
+      const dot = document.getElementById('sim-dot');
+      const statusText = document.getElementById('sim-status-text');
+      const expanded = document.getElementById('sim-expanded');
+      const cmd = document.getElementById('sim-cmd');
+      const btnAllow = document.getElementById('sim-btn-allow');
+      const btnDeny = document.getElementById('sim-btn-deny');
+
+      const scenarios = {
+        agent: {
+          title: 'Claude Code',
+          avatar: 'https://img.logo.dev/claude.ai?token=pk_EOoNMgESRhS1I9FMNVcJiw',
+          dotColor: '#27c93f',
+          status: 'Analyse de 14 fichiers...',
+          expanded: false
+        },
+        permission: {
+          title: 'Claude Code · Permission requise',
+          avatar: 'https://img.logo.dev/claude.ai?token=pk_EOoNMgESRhS1I9FMNVcJiw',
+          dotColor: '#ffbd2e',
+          status: 'Demande bash en attente',
+          expanded: true,
+          cmd: 'npm run build && npm run test'
+        },
+        cloud: {
+          title: 'Stripe & GitHub Actions',
+          avatar: 'https://img.logo.dev/stripe.com?token=pk_EOoNMgESRhS1I9FMNVcJiw',
+          dotColor: '#27c93f',
+          status: '+$1,420 MRR · Build #48 réussi ✓',
+          expanded: false
+        }
+      };
+
+      let currentScenario = 'agent';
+
+      function loadScenario(name) {
+        currentScenario = name;
+        tabs.forEach(t => t.classList.toggle('active', t.getAttribute('data-scenario') === name));
+        const s = scenarios[name];
+        title.textContent = s.title;
+        avatar.src = s.avatar;
+        dot.style.background = s.dotColor;
+        dot.style.boxShadow = '0 0 8px ' + s.dotColor;
+        statusText.textContent = s.status;
+
+        if (s.expanded) {
+          expanded.classList.add('show');
+          cmd.textContent = s.cmd;
+        } else {
+          expanded.classList.remove('show');
+        }
+      }
+
+      tabs.forEach(btn => {
+        btn.addEventListener('click', () => {
+          loadScenario(btn.getAttribute('data-scenario'));
+        });
+      });
+
+      // Interactive Action inside permission request
+      btnAllow.addEventListener('click', (e) => {
+        e.stopPropagation();
+        statusText.textContent = 'Autorisé ✓ Exécution...';
+        dot.style.background = '#27c93f';
+        expanded.classList.remove('show');
+        setTimeout(() => {
+          loadScenario('cloud');
+        }, 1200);
+      });
+
+      btnDeny.addEventListener('click', (e) => {
+        e.stopPropagation();
+        statusText.textContent = 'Refusé ✗ Session arrêtée';
+        dot.style.background = '#ff5f56';
+        expanded.classList.remove('show');
+        setTimeout(() => {
+          loadScenario('agent');
+        }, 1200);
+      });
+
+      // Auto rotation every 6s if not interacting
+      let autoTimer = setInterval(() => {
+        const list = ['agent', 'permission', 'cloud'];
+        const nextIdx = (list.indexOf(currentScenario) + 1) % list.length;
+        loadScenario(list[nextIdx]);
+      }, 6000);
+
+      document.querySelector('.preview-container').addEventListener('mouseenter', () => {
+        clearInterval(autoTimer);
       });
     })();
   </script>
