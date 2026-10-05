@@ -288,7 +288,58 @@ function greetKeffPattern(x: CanvasRenderingContext2D): CanvasPattern | null {
   return x.createPattern(greetKeffTile, "repeat");
 }
 
+function drawHandL(x: CanvasRenderingContext2D, hw: number, hh: number, p: Pose) {
+  const k = p.handL;
+  if (k <= 0.01) return;
+  const hb = hh * 2;
+  const r = hb * 0.15 * k;
+  const rx = lerp(-hw * 0.35, -hw - hb * 0.22, k);
+  let ry = lerp(hh * 0.85, hh * 0.62, k);
+  if (p.wave >= 0) ry += Math.sin(p.wave * 6) * hb * 0.02;
+  x.save();
+  x.translate(rx, ry);
+  const circ = new Path2D();
+  circ.ellipse(0, 0, r, r, 0, 0, Math.PI * 2);
+  const g = x.createLinearGradient(r, -r, -r, r);
+  g.addColorStop(0, "#F0CBA4");
+  g.addColorStop(1, "#CFB098");
+  x.fillStyle = g;
+  x.fill(circ);
+  x.strokeStyle = "rgba(0,0,0,0.1)";
+  x.lineWidth = 0.8;
+  x.stroke(circ);
+  x.restore();
+}
 
+function drawHandR(x: CanvasRenderingContext2D, hw: number, hh: number, p: Pose) {
+  const k = p.handR;
+  if (k <= 0.01) return;
+  const hb = hh * 2;
+  const L = hb * 0.4 * k;
+  const T2 = hb * 0.22 * k;
+  let rx = lerp(hw * 0.35, hw + hb * 0.2, k);
+  let ry = lerp(hh * 0.85, hh * 0.2, k);
+  let ang = -0.61;
+  if (p.wave >= 0) {
+    const w = p.wave * 2 * Math.PI * 2.5;
+    ang += Math.sin(w) * 0.21;
+    ry += Math.sin(w + 0.8) * hb * 0.04;
+    rx += Math.cos(w) * hb * 0.015;
+  }
+  x.save();
+  x.translate(rx, ry);
+  x.rotate(ang);
+  const g = x.createLinearGradient(L / 2, -T2 / 2, -L / 2, T2 / 2);
+  g.addColorStop(0, "#F0CBA4");
+  g.addColorStop(1, "#CFB098");
+  rr(x, -L / 2, -T2 / 2, L, T2, T2 / 2);
+  x.fillStyle = g;
+  x.fill();
+  x.strokeStyle = "rgba(0,0,0,0.1)";
+  x.lineWidth = 0.8;
+  x.stroke();
+  x.restore();
+}
 
 function drawMaoMaoGreeting(x: CanvasRenderingContext2D, p: Pose) {
   const hh = p.hb / 2;
@@ -317,28 +368,11 @@ function drawMaoMaoGreeting(x: CanvasRenderingContext2D, p: Pose) {
   x.rotate(p.tilt);
   x.scale(p.sx, p.sy);
 
-  // 1. Keffiyeh wrap around the head (clean chibi head contour)
-  const kp = new Path2D();
-  kp.moveTo(-hw * 1.02, -hh * 0.45);
-  kp.bezierCurveTo(-hw * 1.05, -hh * 1.18, hw * 1.05, -hh * 1.18, hw * 1.02, -hh * 0.45);
-  kp.bezierCurveTo(hw * 0.85, -hh * 0.65, -hw * 0.85, -hh * 0.65, -hw * 1.02, -hh * 0.45);
-  kp.closePath();
+  // 1. Hands behind head
+  drawHandL(x, hw, hh, p);
+  drawHandR(x, hw, hh, p);
 
-  x.fillStyle = KEFF_WHITE;
-  x.fill(kp);
-  x.save();
-  x.clip(kp);
-  const pat = greetKeffPattern(x);
-  if (pat) {
-    x.fillStyle = pat;
-    x.fillRect(-hw * 1.5, -hh * 1.5, hw * 3, hh * 3);
-  }
-  x.restore();
-  x.strokeStyle = "rgba(0,0,0,0.15)";
-  x.lineWidth = 1;
-  x.stroke(kp);
-
-  // 2. Balaclava Heather Grey Body
+  // 2. Balaclava Heather Grey Head Body
   const body = mochiPath(hw, hh);
   const bg = x.createLinearGradient(hw * 0.4, -hh * 0.9, -hw * 0.5, hh * 0.95);
   bg.addColorStop(0, "#A8ADB8");
@@ -358,7 +392,7 @@ function drawMaoMaoGreeting(x: CanvasRenderingContext2D, p: Pose) {
     x.restore();
   }
 
-  // 3. Sleepy / Chill Eyes
+  // 3. Sleepy / Chill Eyes on the face
   x.save();
   x.clip(body);
 
@@ -442,6 +476,40 @@ function drawMaoMaoGreeting(x: CanvasRenderingContext2D, p: Pose) {
     x.restore(); // end eye transform
   }
   x.restore(); // end body clip
+
+  // 4. Keffiyeh ON TOP OF HEAD (identical to Island rendering)
+  const kp = new Path2D();
+  kp.moveTo(-hw * 1.02, -hh * 0.45);
+  kp.bezierCurveTo(-hw * 1.05, -hh * 1.18, hw * 1.05, -hh * 1.18, hw * 1.02, -hh * 0.45);
+  kp.bezierCurveTo(hw * 0.85, -hh * 0.65, -hw * 0.85, -hh * 0.65, -hw * 1.02, -hh * 0.45);
+  kp.closePath();
+
+  x.shadowColor = "rgba(0, 0, 0, 0.30)";
+  x.shadowBlur = hw * 0.2;
+  x.shadowOffsetY = hh * 0.05;
+  x.fillStyle = KEFF_WHITE;
+  x.fill(kp);
+  x.shadowColor = "transparent";
+
+  x.save();
+  x.clip(kp);
+  const pat = greetKeffPattern(x);
+  if (pat) {
+    x.fillStyle = pat;
+    x.fillRect(-hw * 1.5, -hh * 1.5, hw * 3, hh * 3);
+  }
+  // Fabric lighting gradient
+  const fg = x.createRadialGradient(0, -hh * 0.5, hw * 0.3, 0, -hh * 0.5, hw * 1.4);
+  fg.addColorStop(0, "rgba(255, 255, 255, 0.25)");
+  fg.addColorStop(0.5, "rgba(0, 0, 0, 0)");
+  fg.addColorStop(1, "rgba(0, 0, 0, 0.40)");
+  x.fillStyle = fg;
+  x.fillRect(-hw * 1.5, -hh * 1.5, hw * 3, hh * 3);
+  x.restore();
+
+  x.strokeStyle = "rgba(0,0,0,0.15)";
+  x.lineWidth = 1;
+  x.stroke(kp);
 
   // Activity badge
   if (p.badge > 0.01) {
