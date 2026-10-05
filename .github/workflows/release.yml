@@ -53,8 +53,6 @@ jobs:
           npm run pack
           $v = (Get-Content src-tauri/tauri.conf.json | ConvertFrom-Json).version
           "version=$v" >> $env:GITHUB_OUTPUT
-          
-          # Create portable zip with binaries
           Compress-Archive -Path target/release/maomao.exe, target/release/coucou-hook.exe -DestinationPath release/MaoMao-Windows-$v-portable.zip -Force
 
       - name: Upload Windows artifacts
@@ -88,40 +86,38 @@ jobs:
           if [ -n "${{ github.event.inputs.tag_name }}" ]; then
             TAG="${{ github.event.inputs.tag_name }}"
           fi
-          
+
           echo "Publishing release for tag: $TAG"
-          
-          # Gather all artifact files
+
           mkdir -p release-files
           find dist-artifacts/ -type f \( -name "*.exe" -o -name "*.zip" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" -o -name "*.dmg" \) -exec cp {} release-files/ \;
-          
           ls -la release-files/
 
-          NOTES="### MaoMao ${TAG}
+          cat << 'EOF' > release_notes.md
+          ### MaoMao
 
-Compagnon discret au sommet de votre écran pour surveiller vos agents IA et vos services en direct.
+          Compagnon discret au sommet de votre écran pour surveiller vos agents IA et vos services en direct.
 
-#### Nouveautés & Fonctionnalités
-- HUD discret & Dynamic Island pour Windows & macOS
-- Suivi en temps réel des agents (Claude Code, OpenAI Codex, Antigravity, Cursor, Gemini CLI)
-- Validation des permissions en 1 clic
-- Glisser-déposer de fichiers pour analyse IA instantanée
-- Intégrations Stripe, GitHub Actions, Vercel, Supabase, n8n, Railway, Sentry, Datadog
+          #### Nouveautés & Fonctionnalités
+          - HUD discret & Dynamic Island pour Windows & macOS
+          - Suivi en temps réel des agents (Claude Code, OpenAI Codex, Antigravity, Cursor, Gemini CLI)
+          - Validation des permissions en 1 clic
+          - Glisser-déposer de fichiers pour analyse IA instantanée
+          - Intégrations Stripe, GitHub Actions, Vercel, Supabase, n8n, Railway, Sentry, Datadog
 
-#### Téléchargements
-- **Windows (Installateur)** : Téléchargez \`MaoMao-Windows-*-setup.exe\`
-- **Windows (Portable)** : Téléchargez \`MaoMao-Windows-*-portable.zip\`
-"
+          #### Téléchargements
+          - **Windows (Installateur)** : `MaoMao-Windows-*-setup.exe`
+          - **Windows (Portable)** : `MaoMao-Windows-*-portable.zip`
+          EOF
 
-          # Create or update GitHub release
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "Updating existing release $TAG..."
-            gh release edit "$TAG" --title "MaoMao $TAG" --notes "$NOTES" --latest
+            gh release edit "$TAG" --title "MaoMao $TAG" --notes-file release_notes.md --latest
             gh release upload "$TAG" release-files/* --clobber
           else
             echo "Creating new release $TAG..."
             gh release create "$TAG" release-files/* \
               --title "MaoMao $TAG" \
-              --notes "$NOTES" \
+              --notes-file release_notes.md \
               --latest
           fi
