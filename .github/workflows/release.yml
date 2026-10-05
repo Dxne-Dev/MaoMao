@@ -1,30 +1,127 @@
-name: Release (build check)
+name: Release
 
 on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Tag name (e.g. v0.1.1)'
+        required: false
+        default: ''
 
-# Notarization is done locally with scripts/release.sh.
-# This workflow only verifies the build compiles on a clean machine.
+permissions:
+  contents: write
+
 jobs:
-  build-check:
-    runs-on: macos-latest
+  build-windows:
+    name: Build Windows
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: windows
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Install XcodeGen
-        run: brew install xcodegen
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: windows/package-lock.json
 
-      - name: Generate project
-        run: cd NotchBuddy && xcodegen
+      - name: Cache cargo registry & target
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            windows/target
+          key: windows-cargo-release-${{ hashFiles('windows/Cargo.lock') }}
+          restore-keys: windows-cargo-release-
 
-      - name: Build Release (no signing)
+      - name: Install Node dependencies
+        run: npm ci
+
+      - name: Build & pack Tauri app
+        id: pack
+        shell: pwsh
         run: |
-          xcodebuild \
-            -project NotchBuddy/NotchBuddy.xcodeproj \
-            -scheme NotchBuddy \
-            -configuration Release \
-            build \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO
+          npm run pack
+          $v = (Get-Content src-tauri/tauri.conf.json | ConvertFrom-Json).version
+          "version=$v" >> $env:GITHUB_OUTPUT
+          
+          # Create portable zip with binaries
+          Compress-Archive -Path target/release/maomao.exe, target/release/coucou-hook.exe -DestinationPath release/MaoMao-Windows-$v-portable.zip -Force
+
+      - name: Upload Windows artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-binaries
+          path: |
+            windows/release/MaoMao-Windows-*-setup.exe
+            windows/release/MaoMao-Windows-*-portable.zip
+          retention-days: 7
+
+  publish-release:
+    name: Publish GitHub Release
+    needs: [build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist-artifacts
+
+      - name: Publish Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="${{ github.ref_name }}"
+          if [ -n "${{ github.event.inputs.tag_name }}" ]; then
+            TAG="${{ github.event.inputs.tag_name }}"
+          fi
+          
+          echo "Publishing release for tag: $TAG"
+          
+          # Gather all artifact files
+          mkdir -p release-files
+          find dist-artifacts/ -type f \( -name "*.exe" -o -name "*.zip" -o -name "*.AppImage" -o -name "*.deb" -o -name "*.rpm" -o -name "*.dmg" \) -exec cp {} release-files/ \;
+          
+          ls -la release-files/
+
+          NOTES="### MaoMao ${TAG}
+
+Compagnon discret au sommet de votre écran pour surveiller vos agents IA et vos services en direct.
+
+#### Nouveautés & Fonctionnalités
+- HUD discret & Dynamic Island pour Windows & macOS
+- Suivi en temps réel des agents (Claude Code, OpenAI Codex, Antigravity, Cursor, Gemini CLI)
+- Validation des permissions en 1 clic
+- Glisser-déposer de fichiers pour analyse IA instantanée
+- Intégrations Stripe, GitHub Actions, Vercel, Supabase, n8n, Railway, Sentry, Datadog
+
+#### Téléchargements
+- **Windows (Installateur)** : Téléchargez \`MaoMao-Windows-*-setup.exe\`
+- **Windows (Portable)** : Téléchargez \`MaoMao-Windows-*-portable.zip\`
+"
+
+          # Create or update GitHub release
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Updating existing release $TAG..."
+            gh release edit "$TAG" --title "MaoMao $TAG" --notes "$NOTES" --latest
+            gh release upload "$TAG" release-files/* --clobber
+          else
+            echo "Creating new release $TAG..."
+            gh release create "$TAG" release-files/* \
+              --title "MaoMao $TAG" \
+              --notes "$NOTES" \
+              --latest
+          fi
