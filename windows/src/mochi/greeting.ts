@@ -288,58 +288,7 @@ function greetKeffPattern(x: CanvasRenderingContext2D): CanvasPattern | null {
   return x.createPattern(greetKeffTile, "repeat");
 }
 
-function drawHandL(x: CanvasRenderingContext2D, hw: number, hh: number, p: Pose) {
-  const k = p.handL;
-  if (k <= 0.01) return;
-  const hb = hh * 2;
-  const r = hb * 0.15 * k;
-  const rx = lerp(-hw * 0.35, -hw - hb * 0.22, k);
-  let ry = lerp(hh * 0.85, hh * 0.62, k);
-  if (p.wave >= 0) ry += Math.sin(p.wave * 6) * hb * 0.02;
-  x.save();
-  x.translate(rx, ry);
-  const circ = new Path2D();
-  circ.ellipse(0, 0, r, r, 0, 0, Math.PI * 2);
-  const g = x.createLinearGradient(r, -r, -r, r);
-  g.addColorStop(0, "#F0CBA4");
-  g.addColorStop(1, "#CFB098");
-  x.fillStyle = g;
-  x.fill(circ);
-  x.strokeStyle = "rgba(0,0,0,0.1)";
-  x.lineWidth = 0.8;
-  x.stroke(circ);
-  x.restore();
-}
 
-function drawHandR(x: CanvasRenderingContext2D, hw: number, hh: number, p: Pose) {
-  const k = p.handR;
-  if (k <= 0.01) return;
-  const hb = hh * 2;
-  const L = hb * 0.4 * k;
-  const T2 = hb * 0.22 * k;
-  let rx = lerp(hw * 0.35, hw + hb * 0.2, k);
-  let ry = lerp(hh * 0.85, hh * 0.2, k);
-  let ang = -0.61;
-  if (p.wave >= 0) {
-    const w = p.wave * 2 * Math.PI * 2.5;
-    ang += Math.sin(w) * 0.21;
-    ry += Math.sin(w + 0.8) * hb * 0.04;
-    rx += Math.cos(w) * hb * 0.015;
-  }
-  x.save();
-  x.translate(rx, ry);
-  x.rotate(ang);
-  const g = x.createLinearGradient(L / 2, -T2 / 2, -L / 2, T2 / 2);
-  g.addColorStop(0, "#F0CBA4");
-  g.addColorStop(1, "#CFB098");
-  rr(x, -L / 2, -T2 / 2, L, T2, T2 / 2);
-  x.fillStyle = g;
-  x.fill();
-  x.strokeStyle = "rgba(0,0,0,0.1)";
-  x.lineWidth = 0.8;
-  x.stroke();
-  x.restore();
-}
 
 function drawMaoMaoGreeting(x: CanvasRenderingContext2D, p: Pose) {
   const hh = p.hb / 2;
@@ -368,26 +317,12 @@ function drawMaoMaoGreeting(x: CanvasRenderingContext2D, p: Pose) {
   x.rotate(p.tilt);
   x.scale(p.sx, p.sy);
 
-  drawHandL(x, hw, hh, p);
-  drawHandR(x, hw, hh, p);
-
-  // 1. Keffiyeh drapes behind
+  // 1. Keffiyeh wrap around the head (clean chibi head contour)
   const kp = new Path2D();
-  // Calotte
   kp.moveTo(-hw * 1.02, -hh * 0.45);
   kp.bezierCurveTo(-hw * 1.05, -hh * 1.18, hw * 1.05, -hh * 1.18, hw * 1.02, -hh * 0.45);
   kp.bezierCurveTo(hw * 0.85, -hh * 0.65, -hw * 0.85, -hh * 0.65, -hw * 1.02, -hh * 0.45);
   kp.closePath();
-  // Pans
-  for (const sd of [-1, 1]) {
-    kp.moveTo(sd * hw * 0.85, -hh * 0.50);
-    kp.bezierCurveTo(sd * hw * 1.25, -hh * 0.10, sd * hw * 1.28, hh * 0.50, sd * hw * 1.08, hh * 0.98);
-    kp.lineTo(sd * hw * 0.96, hh * 0.92);
-    kp.lineTo(sd * hw * 0.84, hh * 0.98);
-    kp.lineTo(sd * hw * 0.72, hh * 0.90);
-    kp.bezierCurveTo(sd * hw * 0.78, hh * 0.40, sd * hw * 0.85, -hh * 0.10, sd * hw * 0.68, -hh * 0.45);
-    kp.closePath();
-  }
 
   x.fillStyle = KEFF_WHITE;
   x.fill(kp);

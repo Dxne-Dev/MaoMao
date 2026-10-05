@@ -166,31 +166,15 @@ type PathLike = Path2D | CanvasRenderingContext2D;
 
 const KEFF_RED = "#BD2828";
 const KEFF_WHITE = "#FAF8F5";
-const SKIN = "#DFC4AE";        // cerclage matelassé des orbites, paupières, mains
-const SKIN_SHADE = "#CFB098";
-const KNIT_COLLAR = "#C8CAD0";
-const THOBE_TOP = "#FAF9F7";
-const THOBE_BOTTOM = "#DFDDD8";
-const LEATHER = "#1B1C20";     // agal, bandoulière, sacoche
+const SKIN = "#DFC4AE";        // cerclage matelassé des orbites, paupières
 
-/** Tracé du Keffieh complet : Calotte sur la tête + deux pans latéraux drapés */
+/** Tracé du Keffieh épuré : Calotte sur la tête sans pans latéraux */
 function traceKeffiyehFull(p: PathLike, rx: number, ry: number) {
   // Calotte supérieure
   p.moveTo(-rx * 1.02, -ry * 0.45);
   p.bezierCurveTo(-rx * 1.05, -ry * 1.18, rx * 1.05, -ry * 1.18, rx * 1.02, -ry * 0.45);
   p.bezierCurveTo(rx * 0.85, -ry * 0.65, -rx * 0.85, -ry * 0.65, -rx * 1.02, -ry * 0.45);
   p.closePath();
-
-  // Pans latéraux
-  for (const sd of [-1, 1]) {
-    p.moveTo(sd * rx * 0.85, -ry * 0.50);
-    p.bezierCurveTo(sd * rx * 1.25, -ry * 0.10, sd * rx * 1.28, ry * 0.50, sd * rx * 1.08, ry * 0.98);
-    p.lineTo(sd * rx * 0.96, ry * 0.92);
-    p.lineTo(sd * rx * 0.84, ry * 0.98);
-    p.lineTo(sd * rx * 0.72, ry * 0.90);
-    p.bezierCurveTo(sd * rx * 0.78, ry * 0.40, sd * rx * 0.85, -ry * 0.10, sd * rx * 0.68, -ry * 0.45);
-    p.closePath();
-  }
 }
 
 /** Motif keffieh (houndstooth / damier) généré dans un tile offscreen. */
@@ -821,62 +805,6 @@ export class BotEngine {
     x.fillStyle = hl;
     x.fill(body);
 
-    // ── 2. Thobe / Qamis chest piece + collar + strap (when large) ──
-    if (!mini && acc > 0.01) {
-      const thobeY = ry * 0.62;
-      const tg2 = x.createLinearGradient(0, thobeY, 0, ry);
-      tg2.addColorStop(0, THOBE_TOP);
-      tg2.addColorStop(1, THOBE_BOTTOM);
-      x.fillStyle = tg2;
-      x.beginPath();
-      x.moveTo(-rx, thobeY);
-      x.quadraticCurveTo(0, thobeY - ry * 0.12, rx, thobeY);
-      x.lineTo(rx * 1.1, ry * 1.1);
-      x.lineTo(-rx * 1.1, ry * 1.1);
-      x.closePath();
-      x.fill();
-
-      // Knit neck collar ribbing
-      x.fillStyle = KNIT_COLLAR;
-      x.beginPath();
-      x.ellipse(0, thobeY - ry * 0.05, rx * 0.48, ry * 0.12, 0, 0, Math.PI * 2);
-      x.fill();
-
-      // Button placket
-      x.strokeStyle = "#DDDCD6";
-      x.lineWidth = 1.5;
-      x.beginPath();
-      x.moveTo(0, thobeY);
-      x.lineTo(0, ry);
-      x.stroke();
-
-      x.fillStyle = "#E8E6E0";
-      for (const by of [0.74, 0.88]) {
-        x.beginPath();
-        x.arc(0, ry * by, 2, 0, Math.PI * 2);
-        x.fill();
-      }
-
-      // Pocket
-      x.strokeStyle = "#D2D0C8";
-      x.lineWidth = 1;
-      roundRectPath(x, rx * 0.26, ry * 0.68, rx * 0.22, ry * 0.16, 2);
-      x.stroke();
-
-      // Crossbody leather bag strap
-      x.strokeStyle = LEATHER;
-      x.lineWidth = Math.max(2, rx * 0.05);
-      x.beginPath();
-      x.moveTo(-rx * 0.5, thobeY);
-      x.lineTo(rx * 0.35, ry * 0.95);
-      x.stroke();
-
-      // Small bag
-      x.fillStyle = LEATHER;
-      roundRectPath(x, rx * 0.28, ry * 0.82, rx * 0.24, ry * 0.20, 3);
-      x.fill();
-    }
-
     x.restore(); // end body clip
 
     // ── 3. Draw Keffiyeh & Agal over the head ──
@@ -1230,72 +1158,11 @@ export class BotEngine {
 
   /** Hands sit behind the body — drawn before it, in world coordinates. */
   private drawHandsBehind(
-    x: CanvasRenderingContext2D,
-    R: number, rx: number, ry: number, cx: number, cy: number,
+    _x: CanvasRenderingContext2D,
+    _R: number, _rx: number, _ry: number, _cx: number, _cy: number,
   ) {
-    if (this.hands <= 0.01 || this.isMini) return;
-    if (R <= 14) return;
-
-    const n = now();
-    const bodyH = 2 * ry;
-    const hew = 0.3 * ry * this.hands;
-    const heh = 0.26 * ry * this.hands;
-    const hwB = rx * this.sx;
-    const hhB = ry * this.sy;
-    const isWaving = n >= this.waveStart && this.waveStart > 0 && n < this.waveUntil;
-
-    for (const sd of [-1, 1]) {
-      let localX: number;
-      let localY: number;
-      let handRot = 0;
-
-      if (sd > 0 && isWaving) {
-        const wt = n - this.waveStart;
-        const rise = Math.min(1, wt / 0.18);
-        const riseEased = 1 - Math.pow(1 - rise, 3);
-        const restX = hwB * 1.08;
-        const restY = hhB * 0.7;
-        const oscX = Math.cos(13 * wt) * 0.06 * bodyH;
-        const oscY = -Math.sin(13 * wt) * 0.14 * bodyH;
-        const waveX = hwB * 1.1 + oscX;
-        const waveY = -hhB * 0.15 + oscY;
-        localX = restX + (waveX - restX) * riseEased;
-        localY = restY + (waveY - restY) * riseEased;
-        handRot = (-0.5 + Math.sin(13 * wt) * 0.35) * riseEased;
-      } else if (sd < 0 && isWaving) {
-        const wt = n - this.waveStart;
-        localX = -hwB * 1.08;
-        localY = hhB * 0.7 + Math.sin(6 * wt) * 0.04 * bodyH;
-      } else {
-        localX = sd * hwB * 1.08;
-        localY = hhB * 0.7;
-      }
-
-      const cosT = Math.cos(this.tilt);
-      const sinT = Math.sin(this.tilt);
-      const worldX = cx + cosT * localX - sinT * localY;
-      const worldY = cy + sinT * localX + cosT * localY;
-
-      x.save();
-      x.translate(worldX, worldY);
-      if (handRot !== 0) x.rotate(handRot);
-      const g = x.createLinearGradient(hew * 0.7, -heh * 0.85, -hew * 0.8, heh * 0.9);
-      if (this.bodyColor) {
-        g.addColorStop(0, rgba(mix3(this.bodyColor, [1, 1, 1], 0.35)));
-        g.addColorStop(1, rgba(this.bodyColor));
-      } else {
-        g.addColorStop(0, "#F0CBA4");
-        g.addColorStop(1, SKIN_SHADE);
-      }
-      x.beginPath();
-      x.ellipse(0, 0, hew, heh, 0, 0, Math.PI * 2);
-      x.fillStyle = g;
-      x.fill();
-      x.strokeStyle = "rgba(0,0,0,0.10)";
-      x.lineWidth = 1;
-      x.stroke();
-      x.restore();
-    }
+    // Mascot is head-only
+    return;
   }
 
   private drawBadge(x: CanvasRenderingContext2D, badge: Badge, R: number, cx: number, cy: number) {
