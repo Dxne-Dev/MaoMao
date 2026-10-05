@@ -626,6 +626,12 @@ export class Greeting {
     this.cancelTimers();
   }
 
+  /** Fast skip/dismiss greeting on user click. */
+  skip() {
+    this.interrupt();
+    this.fire();
+  }
+
   get elapsed(): number {
     return (performance.now() - this.startMs) / 1000;
   }

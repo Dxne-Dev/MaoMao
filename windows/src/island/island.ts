@@ -214,6 +214,11 @@ export class Island {
     this.greetingCanvas.height = Math.round(150 * dpr);
     this.greetingCanvas.style.width = `${EXPANDED_W}px`;
     this.greetingCanvas.style.height = "150px";
+    this.greetingCanvas.style.cursor = "pointer";
+    this.greetingCanvas.addEventListener("click", () => {
+      this.greeting.skip();
+      this.fsm.forcePetit();
+    });
 
     this.root.append(this.wakeStrip, this.islandEl);
     this.applyGeometry();
@@ -535,6 +540,14 @@ export class Island {
     this.islandEl.addEventListener("mousedown", (e) => {
       Sound.resume();
       State.lastActivity = performance.now();
+
+      // Fast dismiss during startup Greeting
+      if (this.fsm.state === "coucou" || State.view === "greeting") {
+        this.greeting.skip();
+        this.fsm.forcePetit();
+        return;
+      }
+
       if (State.mode !== "expanded") {
         this.fsm.click();
         return;
@@ -545,8 +558,53 @@ export class Island {
       }
     });
 
+    // Double-click to instantly collapse / hide the island
+    this.islandEl.addEventListener("dblclick", (e) => {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.closest("button"))) return;
+      if (State.mode === "expanded") {
+        this.collapse();
+      } else if (State.mode === "compact") {
+        this.fsm.forceHidden();
+      }
+    });
+
+    // Right-click to collapse / dismiss immediately
+    this.islandEl.addEventListener("contextmenu", (e) => {
+      e.preventDefault();
+      if (this.fsm.state === "coucou" || State.view === "greeting") {
+        this.greeting.skip();
+        this.fsm.forcePetit();
+      } else if (State.mode === "expanded") {
+        this.collapse();
+      } else if (State.mode === "compact") {
+        this.fsm.forceHidden();
+      }
+    });
+
+    // Wheel-up to collapse the island upwards
+    this.islandEl.addEventListener("wheel", (e) => {
+      if (e.deltaY < -10) {
+        if (this.fsm.state === "coucou" || State.view === "greeting") {
+          this.greeting.skip();
+          this.fsm.forcePetit();
+        } else if (State.mode === "expanded") {
+          this.collapse();
+        } else if (State.mode === "compact") {
+          this.fsm.forceHidden();
+        }
+      }
+    }, { passive: true });
+
     window.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && State.mode === "expanded" && !State.isPinned) this.collapse();
+      if (e.key === "Escape" && !State.isPinned) {
+        if (this.fsm.state === "coucou" || State.view === "greeting") {
+          this.greeting.skip();
+          this.fsm.forcePetit();
+        } else if (State.mode === "expanded") {
+          this.collapse();
+        }
+      }
       State.lastActivity = performance.now();
     });
 
