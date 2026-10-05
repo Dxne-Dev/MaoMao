@@ -10,162 +10,173 @@
 </head>
 <body>
   <div class="wrap">
-    <!-- Navigation -->
+    
+    <!-- Top Navigation Bar -->
     <header>
       <a href="index.html" class="brand">
-        <img src="media/icon.png" alt="MaoMao">
-        <span class="name">MaoMao</span>
+        <div class="brand-icon">
+          <img src="media/icon.png" alt="MaoMao">
+        </div>
+        <span class="brand-name">MaoMao</span>
       </a>
+
       <nav>
         <a href="#features">Fonctionnalités</a>
         <a href="#integrations">Intégrations</a>
         <a href="#install">Installation</a>
-        <a href="https://github.com/Dxne-Dev/MaoMao/releases" target="_blank">Releases</a>
-        <a href="https://github.com/Dxne-Dev/MaoMao" target="_blank" class="nav-github">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        <a href="https://github.com/Dxne-Dev/MaoMao/releases">Releases</a>
+      </nav>
+
+      <div class="nav-actions">
+        <a href="https://github.com/Dxne-Dev/MaoMao" class="btn-nav-outline" target="_blank">
           GitHub
         </a>
-      </nav>
+        <a href="https://github.com/Dxne-Dev/MaoMao/releases/latest" class="btn-nav-fill">
+          Télécharger →
+        </a>
+      </div>
     </header>
 
     <!-- Hero Section -->
     <section class="hero">
-      <div class="badge-tag">
-        <span class="dot"></span>
-        v0.1.1 disponible · Open Source & 100% Local
+      <div class="tagline-badge">
+        <span>✦</span> v0.1.1 disponible · 100% Local & Open Source
       </div>
-      
-      <h1>Un compagnon discret au sommet de votre écran</h1>
-      
-      <p>
-        MaoMao surveille en direct vos sessions d'agents IA (Claude Code, Codex, Antigravity, Cursor...), 
-        valide les permissions en 1 clic et garde un œil sur vos déploiements et services cloud sans jamais quitter votre espace de travail.
+
+      <h1 class="display-headline">
+        Un compagnon discret <span class="highlight">au sommet</span> de votre écran
+      </h1>
+
+      <p class="subhead">
+        MaoMao surveille en temps réel vos sessions d'agents IA, valide les permissions en un clin d'œil et garde le contact avec vos déploiements et services cloud — sans jamais quitter votre espace de travail.
       </p>
 
-      <div class="cta-group">
-        <a href="https://github.com/Dxne-Dev/MaoMao/releases/latest" class="btn btn-primary">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Télécharger la dernière version
+      <div class="cta-stack">
+        <a href="https://github.com/Dxne-Dev/MaoMao/releases/latest" class="btn-primary-cta">
+          → Télécharger pour Windows & Mac
         </a>
-        <a href="https://github.com/Dxne-Dev/MaoMao" class="btn btn-secondary">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-          Voir le code source
+        <a href="https://github.com/Dxne-Dev/MaoMao" class="btn-secondary-cta" target="_blank">
+          Voir sur GitHub
         </a>
       </div>
 
-      <div class="platform-pills">
-        <span class="platform-pill">🪟 Windows 10 / 11</span>
-        <span class="platform-pill">🍏 macOS 15+ (Notch & Dynamic Island)</span>
-        <span class="platform-pill">🐧 Linux</span>
+      <p class="reassurance-caption">Gratuit · Aucun compte requis · Vos clés restent sur votre machine</p>
+
+      <!-- Compatible strip -->
+      <div class="compatible-strip">
+        <span>Compatible avec :</span>
+        <span class="compatible-pill">⚡ Claude Code</span>
+        <span class="compatible-pill">🤖 OpenAI Codex</span>
+        <span class="compatible-pill">🚀 Antigravity</span>
+        <span class="compatible-pill">💻 Cursor</span>
+        <span class="compatible-pill">✨ Gemini CLI</span>
+        <span class="compatible-pill">🪟 Windows 10/11</span>
+        <span class="compatible-pill">🍏 macOS 15+</span>
       </div>
 
-      <!-- Preview -->
-      <div class="preview-box">
-        <img src="media/demo.gif" alt="Démonstration de MaoMao">
+      <!-- Preview container -->
+      <div class="preview-container">
+        <img src="media/demo.gif" alt="Démonstration de MaoMao en direct">
       </div>
     </section>
 
-    <!-- Features -->
+    <!-- Features (Sticky Notes Grid) -->
     <section id="features">
-      <h2 class="section-title">Tout ce dont vous avez besoin sous les yeux</h2>
-      <p class="section-desc">Pensé pour les développeurs, les makers et tous ceux qui collaborent quotidiennement avec des agents IA.</p>
+      <h2 class="section-heading">Conçu pour vos flux de travail IA</h2>
+      <p class="section-subhead">Chaque détail a été pensé pour vous faire gagner du temps et vous offrir une visibilité instantanée.</p>
 
-      <div class="grid-3">
-        <div class="card">
-          <div class="card-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-          </div>
+      <div class="card-grid">
+        <!-- Mint Sticky Note Card -->
+        <div class="sticky-card card-mint">
+          <span class="card-tag">Interface</span>
           <h3>HUD & Dynamic Island</h3>
-          <p>Se loge parfaitement dans l'encoche de votre MacBook ou flotte discrètement en haut de votre écran Windows sous forme d'îlot dynamique interactif.</p>
+          <p>Se loge parfaitement dans l'encoche de votre MacBook ou flotte élégamment en haut de votre écran Windows sous forme d'îlot dynamique interactif.</p>
         </div>
 
-        <div class="card">
-          <div class="card-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
-          </div>
-          <h3>Suivi Agents IA en direct</h3>
-          <p>Détection automatique des sessions Claude Code, OpenAI Codex, Google Antigravity, Cursor et Gemini CLI. Visualisez les pensées, les outils appelés et les coûts.</p>
+        <!-- Yellow Sticky Note Card -->
+        <div class="sticky-card card-yellow">
+          <span class="card-tag">Temps Réel</span>
+          <h3>Suivi des Agents IA</h3>
+          <p>Détection automatique des sessions Claude Code, Codex, Antigravity, Cursor et Gemini. Observez leurs étapes, leurs réflexions et leurs coûts sans encombrer votre terminal.</p>
         </div>
 
-        <div class="card">
-          <div class="card-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          </div>
+        <!-- Teal Sticky Note Card -->
+        <div class="sticky-card card-teal">
+          <span class="card-tag">Contrôle</span>
           <h3>Validation en 1 Clic</h3>
-          <p>Approuvez ou refusez les demandes de permission (exécution de commandes bash, modifications de fichiers) directement depuis l'îlot sans changer d'onglet.</p>
+          <p>Approuvez ou refusez les demandes de permission (commandes bash, écriture de fichiers) directement depuis l'îlot, sans changer d'application ni perdre le focus.</p>
         </div>
 
-        <div class="card">
-          <div class="card-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          </div>
+        <!-- Blush Sticky Note Card -->
+        <div class="sticky-card card-blush">
+          <span class="card-tag">Productivité</span>
           <h3>Glisser-Déposer Instantané</h3>
-          <p>Glissez n'importe quel fichier ou capture d'écran sur MaoMao pour déclencher instantanément une analyse intelligente ou une transcription OCR.</p>
+          <p>Déposez n'importe quel fichier, capture d'écran ou document sur MaoMao pour déclencher immédiatement une analyse IA ou une transcription OCR.</p>
         </div>
 
-        <div class="card">
-          <div class="card-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          </div>
-          <h3>100% Privé & Sécurisé</h3>
-          <p>Aucun compte, aucun serveur tiers, aucune télémétrie. Vos clés API sont stockées dans le Windows Credential Manager ou le trousseau macOS.</p>
+        <!-- Cream Card -->
+        <div class="sticky-card card-cream">
+          <span class="card-tag">Sécurité</span>
+          <h3>100% Local & Privé</h3>
+          <p>Aucun compte, aucun serveur distant, zéro pistage. Vos clés API restent sécurisées dans le Windows Credential Manager ou le trousseau macOS.</p>
         </div>
 
-        <div class="card">
-          <div class="card-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-          </div>
-          <h3>Ultra Léger & Réactif</h3>
-          <p>Construit avec Tauri v2 et Rust, MaoMao consomme moins de 30 Mo de RAM et offre un taux de rafraîchissement fluide à 60 FPS.</p>
+        <!-- Mint Card -->
+        <div class="sticky-card card-mint">
+          <span class="card-tag">Performance</span>
+          <h3>Ultra Léger & Fluide</h3>
+          <p>Construit en Rust avec Tauri v2. Moins de 30 Mo de RAM, démarrage instantané et animations à 60 FPS sans ralentir votre machine.</p>
         </div>
       </div>
     </section>
 
     <!-- Integrations -->
     <section id="integrations">
-      <h2 class="section-title">Connectez tous vos outils de développement</h2>
-      <p class="section-desc">MaoMao interroge vos services en tâche de fond et affiche les alertes critiques dès qu'elles surviennent.</p>
+      <h2 class="section-heading">Connectez vos services préférés</h2>
+      <p class="section-subhead">Suivez l'état de votre infrastructure et de vos projets en un coup d'œil.</p>
 
-      <div class="integrations-bar">
-        <span class="integration-tag">⚡ Claude Code</span>
-        <span class="integration-tag">🤖 OpenAI Codex</span>
-        <span class="integration-tag">🚀 Antigravity IDE</span>
-        <span class="integration-tag">💻 Cursor</span>
-        <span class="integration-tag">💳 Stripe MRR</span>
-        <span class="integration-tag">🐙 GitHub Actions</span>
-        <span class="integration-tag">▲ Vercel Deployments</span>
-        <span class="integration-tag">⚡ Supabase</span>
-        <span class="integration-tag">🚂 Railway</span>
-        <span class="integration-tag">🔄 n8n Workflows</span>
-        <span class="integration-tag">🪲 Sentry Errors</span>
-        <span class="integration-tag">📊 Datadog</span>
+      <div class="integrations-cluster">
+        <span class="chip">💳 Stripe MRR</span>
+        <span class="chip">🐙 GitHub Actions</span>
+        <span class="chip">▲ Vercel Deployments</span>
+        <span class="chip">⚡ Supabase</span>
+        <span class="chip">🚂 Railway</span>
+        <span class="chip">🔄 n8n Workflows</span>
+        <span class="chip">🪲 Sentry Errors</span>
+        <span class="chip">📊 Datadog</span>
+        <span class="chip">☁️ Coolify</span>
+        <span class="chip">📨 Resend</span>
       </div>
     </section>
 
-    <!-- Installation -->
+    <!-- Installation & Setup -->
     <section id="install">
-      <h2 class="section-title">Installer MaoMao</h2>
-      <p class="section-desc">Téléchargez le binaire précompilé ou compilez depuis les sources.</p>
+      <h2 class="section-heading">Prise en main rapide</h2>
+      <p class="section-subhead">Téléchargez l'application précompilée ou lancez-la depuis les sources.</p>
 
-      <div class="card" style="margin-bottom: 24px;">
-        <h3 style="margin-bottom: 12px;">Option 1 — Téléchargement direct (Releases GitHub)</h3>
-        <p style="margin-bottom: 18px;">
-          Rendez-vous sur la page des releases pour télécharger l'installateur adapté à votre système d'exploitation :
-        </p>
-        <a href="https://github.com/Dxne-Dev/MaoMao/releases/latest" class="btn btn-primary">
-          Accéder aux Releases GitHub →
-        </a>
-      </div>
+      <div class="card-grid">
+        <div class="sticky-card card-cream">
+          <span class="card-tag">Option 1</span>
+          <h3>Téléchargement Direct</h3>
+          <p>Installez la version officielle pour votre système en un clic depuis notre page de releases :</p>
+          <div style="margin-top: 18px;">
+            <a href="https://github.com/Dxne-Dev/MaoMao/releases/latest" class="btn-primary-cta">
+              Accéder à la dernière release →
+            </a>
+          </div>
+        </div>
 
-      <div class="card">
-        <h3 style="margin-bottom: 12px;">Option 2 — Compiler depuis les sources</h3>
-        <div class="code-box">
-          <span class="comment"># Cloner le dépôt</span><br>
-          git clone https://github.com/Dxne-Dev/MaoMao.git<br>
-          cd MaoMao/windows<br><br>
-          <span class="comment"># Installer les dépendances et lancer en mode dev</span><br>
-          npm install<br>
-          npm run tauri dev
+        <div class="sticky-card card-cream">
+          <span class="card-tag">Option 2</span>
+          <h3>Compiler depuis les sources</h3>
+          <p>Clonez le dépôt et lancez le projet avec Tauri :</p>
+          <div class="terminal-card">
+            <span class="comment"># Cloner et lancer</span><br>
+            git clone https://github.com/Dxne-Dev/MaoMao.git<br>
+            cd MaoMao/windows<br>
+            npm install<br>
+            npm run tauri dev
+          </div>
         </div>
       </div>
     </section>
@@ -173,7 +184,7 @@
     <!-- Footer -->
     <footer>
       <div>
-        © 2026 <strong>Dxne Dev</strong> · MaoMao est un projet open source sous licence MIT.
+        © 2026 <strong>Dxne Dev</strong> · MaoMao est un projet open source (Licence MIT).
       </div>
       <div class="footer-links">
         <a href="https://github.com/Dxne-Dev/MaoMao">GitHub</a>
@@ -181,8 +192,10 @@
         <a href="privacy.html">Confidentialité</a>
         <a href="terms.html">Conditions</a>
         <a href="support.html">Support</a>
+        <a href="legal.html">Mentions légales</a>
       </div>
     </footer>
+
   </div>
 </body>
 </html>
