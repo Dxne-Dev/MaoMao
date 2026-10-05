@@ -25,6 +25,9 @@ interface HookPayload {
   tool_input?: Record<string, unknown>;
   /** Optional agent tag: lowercase, digits and hyphens, ≤ 24 chars. */
   coucou_agent?: string;
+  term_program?: string;
+  terminal_app?: string;
+  wt_session?: string;
 }
 
 /** Same rule as HookServer.validateAgent on macOS. "claude" is reserved. */
@@ -44,20 +47,24 @@ function agentColor(name: string): string {
   return FALLBACK_COLORS[Math.abs(h) % FALLBACK_COLORS.length];
 }
 
-const PROJECT_ALIASES: Record<string, string> = {
-  "notch-buddy": "Notch Buddy",
-  notchbuddy: "Notch Buddy",
-  notch_buddy: "Notch Buddy",
-};
-
-function aliasProjectName(name: string): string {
-  return PROJECT_ALIASES[name.toLowerCase()] ?? name;
-}
-
 function lastPathComponent(p: string): string {
   const cleaned = p.replace(/[\\/]+$/, "");
   const idx = Math.max(cleaned.lastIndexOf("\\"), cleaned.lastIndexOf("/"));
   return idx >= 0 ? cleaned.slice(idx + 1) : cleaned;
+}
+
+function detectAppLabel(payload: HookPayload): string {
+  if (payload.terminal_app && payload.terminal_app.trim()) {
+    return payload.terminal_app.trim();
+  }
+  const term = (payload.term_program ?? "").toLowerCase();
+  if (term.includes("antigravity")) return "Antigravity";
+  if (term.includes("cursor")) return "Cursor";
+  if (term.includes("vscode")) return "VS Code";
+  if (term.includes("ghostty")) return "Ghostty";
+  if (term.includes("warp")) return "Warp";
+  if (payload.wt_session) return "PowerShell";
+  return "Terminal";
 }
 
 /** frenchStep() — same labels as the macOS app. */
@@ -120,10 +127,10 @@ function approvalTarget(tool: string, input: Record<string, unknown>): string {
   return tool;
 }
 
-function upsert(projectName: string, cwd: string) {
+function upsert(cwd: string, appLabel: string) {
   const t = State.tasks.find((x) => x.id === CLAUDE_ID);
   if (!t) return;
-  t.name = projectName;
+  t.name = `Claude (${appLabel})`;
   if (cwd) t.sessionCwd = cwd;
 }
 
@@ -132,7 +139,7 @@ function clearSession() {
   if (!t) return;
   t.steps = [];
   t.stepIndex = 0;
-  t.name = "VS Code";
+  t.name = "Claude Code";
   t.pillBadge = null;
 }
 
@@ -151,8 +158,7 @@ function handleHook(island: Island, payload: HookPayload) {
 
   const name = payload.hook_event_name ?? "";
   const cwd = payload.cwd ?? "";
-  const raw = lastPathComponent(cwd);
-  const projectName = aliasProjectName(raw || "Session");
+  const appLabel = detectAppLabel(payload);
 
   // Route to the right pill. Valid coucou_agent → dynamic "agent_<name>" pill.
   // "claude" is reserved; absent or invalid → Claude Code pill unchanged.
@@ -178,7 +184,7 @@ function handleHook(island: Island, payload: HookPayload) {
     if (isExternalAgent) {
       State.upsertExternalAgent(agentId, validAgent!, agentColor(validAgent!));
     } else {
-      upsert(projectName, cwd);
+      upsert(cwd, appLabel);
     }
   };
 
@@ -287,7 +293,7 @@ function handleHook(island: Island, payload: HookPayload) {
         if (requestId) void Bridge.approvalDecline(requestId);
         break;
       }
-      upsert(projectName, cwd);
+      upsert(cwd, appLabel);
       if (pendingTimeout != null) window.clearTimeout(pendingTimeout);
       const tool = payload.tool_name ?? "Tool";
       const input = payload.tool_input ?? {};

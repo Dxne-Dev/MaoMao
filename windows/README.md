@@ -1,10 +1,10 @@
 <div align="center">
 
-<img src="src-tauri/icons/128x128.png" width="96" alt="Coucou icon">
+<img src="src-tauri/icons/128x128.png" width="96" alt="MaoMao icon">
 
-# Coucou for Windows
+# MaoMao for Windows
 
-**Mochi doesn't get a notch on a PC — so it lives at the top of your screen instead.**
+**The mascot lives at the top of your screen.**
 
 Approve Claude Code permissions, watch your session work, drop a file, chat with Claude, keep an eye on your services — without leaving what you're doing.
 
@@ -58,13 +58,13 @@ your integrations sit in the coloured pills next to Mochi.
 Open **Settings… → Claude Code → Install hooks…**. You get the exact diff of what
 will change in `%USERPROFILE%\.claude\settings.json`, the path of the dated backup
 that will be taken, and nothing is written until you click. Your own hooks are
-never touched, and uninstalling removes only Coucou's entries.
+never touched, and uninstalling removes only MaoMao's entries.
 
 The relay is a tiny executable, `coucou-hook.exe`, copied to
-`%LOCALAPPDATA%\Coucou\bin\` at launch. It is given 300 ms to reach Coucou and
+`%LOCALAPPDATA%\MaoMao\bin\` at launch. It is given 300 ms to reach MaoMao and
 exits cleanly if the app is closed, slow or crashed — **a Claude Code session is
-never blocked or slowed down by Coucou.** If nobody answers a permission request
-in time, Coucou stays quiet and Claude Code asks in the terminal as usual.
+never blocked or slowed down by MaoMao.** If nobody answers a permission request
+in time, MaoMao stays quiet and Claude Code asks in the terminal as usual.
 
 It works from any terminal — Windows Terminal, PowerShell, VS Code, Git Bash.
 
@@ -74,7 +74,7 @@ It works from any terminal — Windows Terminal, PowerShell, VS Code, Git Bash.
 Credential Manager**, never on disk and never in the interface — the island can
 only ask whether a key exists. Same for every integration key.
 
-No telemetry. The only network requests Coucou makes are to the services you
+No telemetry. The only network requests MaoMao makes are to the services you
 configure yourself.
 
 ## Build it yourself
@@ -99,13 +99,13 @@ otherwise needs a real drag from Explorer to see. Neither page ships in the app.
 workflow publishes:
 
 ```
-Coucou-Windows-X.Y.Z-setup.exe    the versioned installer
-Coucou-Windows-setup.exe          the same file under the rolling name
+MaoMao-Windows-X.Y.Z-setup.exe    the versioned installer
+MaoMao-Windows-setup.exe          the same file under the rolling name
 ```
 
-Installing is optional — `target/release/coucou.exe` runs on its own. There is no
+Installing is optional — `target/release/maomao.exe` runs on its own. There is no
 window in the taskbar and no console: the island at the top of the screen and the
-Mochi in the notification area are the whole app, and Quit lives in its menu.
+icon in the notification area are the whole app, and Quit lives in its menu.
 
 The 28 sounds are the macOS app's own files; they are never duplicated in this
 folder. The path is declared once, in `SOUNDS_DIR` at the top of
@@ -122,7 +122,8 @@ npm run icons          # regenerates src-tauri/icons from scripts/gen-icons.mjs
 ```
 windows/
   src/                 island front end (TypeScript, no framework)
-    mochi/             Mochi and the launch greeting, in Canvas 2D
+    mochi/             current Canvas 2D character (imported via mascot/)
+    mascot/            injection point for swapping the character
     island/            state machine, hooks, integrations
     views/             every island view
     settings/          the settings window
@@ -133,7 +134,7 @@ windows/
 
 ### Log
 
-`%LOCALAPPDATA%\Coucou\coucou.log` — hook events, permission decisions, poller
+`%LOCALAPPDATA%\MaoMao\maomao.log` — hook events, permission decisions, poller
 problems. It stays on your machine.
 
 ## What's different from the Mac version
@@ -172,12 +173,12 @@ What changes on Linux:
   shape, so the compositor sends every other click to what is underneath.
 - **Mochi's eyes** follow the pointer only while it is over the island: Wayland
   gives no app the cursor position anywhere else.
-- **Claude Code hooks** go through `~/.local/share/coucou/bin/coucou-hook` and a
+- **Claude Code hooks** go through `~/.local/share/maomao/bin/coucou-hook` and a
   Unix socket at `$XDG_RUNTIME_DIR/coucou.sock`. Both ends check that the other
   runs as the same user.
 - **Keys** live in the Secret Service (GNOME Keyring, KWallet).
-- **Files**: preferences in `~/.config/coucou/`, the log at
-  `~/.local/share/coucou/coucou.log`.
+- **Files**: preferences in `~/.config/maomao/`, the log at
+  `~/.local/share/maomao/maomao.log`.
 - What the Windows build leaves out, this one does too: sending a file by
   email, dragging Mochi onto a window, and jumping to a specific terminal
   window — "Open terminal" opens the folder in VS Code.

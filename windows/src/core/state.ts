@@ -1,7 +1,7 @@
 // App state — mirror of AppState.swift (the parts the island needs).
 
 import type { BotEmoteName, BotStateName, IslandMode, IslandViewName } from "./layout";
-import type { EyeShape } from "../mochi/engine";
+import type { EyeShape } from "../mascot";
 
 export type AgentSource = "claudeCode" | "n8n" | "agent";
 export type PillBadge = "approval" | "finished" | "error";
@@ -58,7 +58,7 @@ const task = (
 
 /** AgentTask.integrationAgents — same ids, names and colours as macOS. */
 export const INTEGRATION_AGENTS: AgentTask[] = [
-  task("integration_claude", "VS Code", "#F5F6F8", "claudeCode"),
+  task("integration_claude", "Claude Code", "#F5F6F8", "claudeCode"),
   task("integration_resend", "Resend", "#22C55E", "n8n"),
   task("integration_n8n", "n8n", "#F29B38", "n8n"),
   task("integration_vercel", "Vercel", "#7C5CFF", "n8n"),
@@ -81,12 +81,21 @@ export interface IntegrationInfo {
   configured: boolean;
 }
 
+export interface CustomIntegrationConfig {
+  id: string;
+  name: string;
+  color: string;
+  url: string;
+  token?: string;
+}
+
 export interface Settings {
   soundEnabled: boolean;
   soundVolume: number;
   autoCloseInterval: number;
   absenceInterval: number;
   activeIntegrations: string[];
+  customIntegrations: CustomIntegrationConfig[];
   screen: "primary" | "cursor";
   autostart: boolean;
   hooksInstalled: boolean;
@@ -100,8 +109,9 @@ export const DEFAULT_SETTINGS: Settings = {
   autoCloseInterval: 15,
   absenceInterval: 180,
   activeIntegrations: [
-    "integration_resend", "integration_n8n", "integration_vercel", "integration_github",
+    "integration_github", "integration_vercel",
   ],
+  customIntegrations: [],
   screen: "primary",
   autostart: false,
   hooksInstalled: false,
@@ -207,6 +217,26 @@ class AppState {
       const idx = this.tasks.findIndex((t) => t.id === proto.id);
       if (shouldLoad && idx < 0) this.tasks.push({ ...proto, steps: [] });
       if (!shouldLoad && idx >= 0) this.tasks.splice(idx, 1);
+    }
+    // Custom user integrations
+    for (const custom of (this.settings.customIntegrations || [])) {
+      const shouldLoad = this.settings.activeIntegrations.includes(custom.id);
+      const idx = this.tasks.findIndex((t) => t.id === custom.id);
+      if (shouldLoad && idx < 0) {
+        this.tasks.push({
+          id: custom.id,
+          name: custom.name,
+          color: custom.color,
+          state: "idle",
+          stepIndex: 0,
+          steps: [],
+          source: "n8n",
+          isIntegration: true,
+        });
+      }
+      if (!shouldLoad && idx >= 0) {
+        this.tasks.splice(idx, 1);
+      }
     }
     // Order: integration_claude first, then agent_* pills (visible in slice(0,4)),
     // then other integrations in declaration order.

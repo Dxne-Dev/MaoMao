@@ -6,12 +6,26 @@ use std::path::PathBuf;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct CustomIntegrationConfig {
+    pub id: String,
+    pub name: String,
+    pub color: String,
+    #[serde(default)]
+    pub url: String,
+    #[serde(default)]
+    pub token: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Settings {
     pub sound_enabled: bool,
     pub sound_volume: f64,
     pub auto_close_interval: f64,
     pub absence_interval: f64,
     pub active_integrations: Vec<String>,
+    #[serde(default)]
+    pub custom_integrations: Vec<CustomIntegrationConfig>,
     /// "primary" = the main display, "cursor" = whichever display the mouse is on.
     pub screen: String,
     pub autostart: bool,
@@ -34,11 +48,10 @@ impl Default for Settings {
             auto_close_interval: 15.0,
             absence_interval: 180.0,
             active_integrations: vec![
-                "integration_resend".into(),
-                "integration_n8n".into(),
-                "integration_vercel".into(),
                 "integration_github".into(),
+                "integration_vercel".into(),
             ],
+            custom_integrations: vec![],
             screen: "primary".into(),
             autostart: false,
             hooks_installed: false,

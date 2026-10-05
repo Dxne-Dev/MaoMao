@@ -67,7 +67,7 @@ function claudeSection(status: HookStatus): HTMLElement {
       h("div", {
         class: "hint",
         text: status.installed
-          ? "Coucou is hooked into your Claude Code sessions. Tool calls, questions and permission requests show up in the island, and you can answer them there."
+          ? "MaoMao is hooked into your Claude Code sessions. Tool calls, questions and permission requests show up in the island, and you can answer them there."
           : "Install the hooks to see your Claude Code sessions in the island and approve permissions without leaving what you are doing.",
       }),
       h("div", { class: "row" },
@@ -84,7 +84,7 @@ function claudeSection(status: HookStatus): HTMLElement {
     if (!status.hookReady) {
       body.append(h("div", {
         class: "notice warn",
-        text: "coucou-hook.exe is not in place yet. Restart Coucou; if it still fails, build it with `cargo build -p coucou-hook`.",
+        text: "coucou-hook.exe is not in place yet. Restart MaoMao; if it still fails, build it with `cargo build -p coucou-hook`.",
       }));
     }
 
@@ -135,7 +135,7 @@ function claudeSection(status: HookStatus): HTMLElement {
         class: "hint",
         text: install
           ? "This is exactly what will change in your settings.json. Your own hooks are left untouched."
-          : "This removes Coucou's entries only. Your own hooks are left untouched.",
+          : "This removes MaoMao's entries only. Your own hooks are left untouched.",
       }),
       renderDiff(preview.diff),
       h("div", { class: "row" },
@@ -286,13 +286,18 @@ const INTEGRATIONS: IntegrationDef[] = [
 
 const MAX_ACTIVE = 4;
 
+const PRESET_COLORS = [
+  "#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#06B6D4", "#94A3B8"
+];
+
 function integrationsSection(present: Record<string, boolean>): HTMLElement {
   const note = h("div", { class: "hint" });
   const list = h("div", { style: "display:flex;flex-direction:column;gap:14px" });
+  const customContainer = h("div", { style: "display:flex;flex-direction:column;gap:12px;margin-top:10px;border-top:1px solid var(--hairline);padding-top:14px" });
 
   function updateNote() {
     const used = settings.activeIntegrations.length;
-    note.textContent = `Pick up to ${MAX_ACTIVE} pills to show next to Mochi — ${used}/${MAX_ACTIVE} in use. Keys are stored in the Windows Credential Manager, never on disk.`;
+    note.textContent = `Pick up to ${MAX_ACTIVE} pills to show next to MaoMao — ${used}/${MAX_ACTIVE} in use. Keys are stored in the Windows Credential Manager, never on disk.`;
   }
 
   for (const def of INTEGRATIONS) {
@@ -354,8 +359,158 @@ function integrationsSection(present: Record<string, boolean>): HTMLElement {
     );
   }
 
+  // ── Custom Integrations list & form ──
+  function renderCustomList() {
+    clear(customContainer);
+    const customHeader = h("div", { style: "display:flex;align-items:center;justify-content:space-between" },
+      h("div", { style: "font-weight:600;font-size:12.5px", text: "Custom Integrations" }),
+      h("button", {
+        class: "primary",
+        style: "font-size:11.5px;padding:4px 10px",
+        text: "+ Add custom integration",
+        onclick: () => showAddForm(),
+      }),
+    );
+    customContainer.append(customHeader);
+
+    if (!settings.customIntegrations || settings.customIntegrations.length === 0) {
+      customContainer.append(h("div", { class: "hint", text: "No custom integrations yet. Click '+ Add custom integration' to connect your own API, service or agent." }));
+      return;
+    }
+
+    for (const custom of settings.customIntegrations) {
+      const active = settings.activeIntegrations.includes(custom.id);
+      const sw = h("button", { class: active ? "switch on" : "switch" });
+      sw.addEventListener("click", () => {
+        const on = settings.activeIntegrations.includes(custom.id);
+        if (on) {
+          settings.activeIntegrations = settings.activeIntegrations.filter((x) => x !== custom.id);
+        } else {
+          if (settings.activeIntegrations.length >= MAX_ACTIVE) return;
+          settings.activeIntegrations = [...settings.activeIntegrations, custom.id];
+        }
+        sw.classList.toggle("on", !on);
+        updateNote();
+        void save();
+      });
+
+      const delBtn = h("button", {
+        class: "danger",
+        style: "padding:4px 8px;font-size:11px",
+        text: "Delete",
+        onclick: () => {
+          settings.customIntegrations = settings.customIntegrations.filter((c) => c.id !== custom.id);
+          settings.activeIntegrations = settings.activeIntegrations.filter((x) => x !== custom.id);
+          updateNote();
+          renderCustomList();
+          void save();
+        },
+      });
+
+      const row = h("div", { style: "display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(255,255,255,0.03);padding:8px 12px;border-radius:8px" },
+        h("div", { style: "display:flex;align-items:center;gap:8px" },
+          sw,
+          h("i", { class: "dot", style: `background:${custom.color}` }),
+          h("b", { style: "font-size:12.5px", text: custom.name }),
+          custom.url ? h("span", { class: "path", style: "font-size:11px", text: custom.url }) : null,
+        ),
+        delBtn,
+      );
+      customContainer.append(row);
+    }
+  }
+
+  function showAddForm() {
+    clear(customContainer);
+    let selectedColor = PRESET_COLORS[0];
+
+    const nameInput = h("input", {
+      type: "text",
+      placeholder: "e.g. My API, GitLab CI, Webhook",
+      style: "flex:1 1 auto;min-width:0",
+    }) as HTMLInputElement;
+
+    const urlInput = h("input", {
+      type: "text",
+      placeholder: "https://my-service.com or API endpoint",
+      style: "flex:1 1 auto;min-width:0",
+    }) as HTMLInputElement;
+
+    const keyInput = h("input", {
+      type: "password",
+      placeholder: "Optional API key or Bearer token",
+      style: "flex:1 1 auto;min-width:0",
+      autocomplete: "off",
+      spellcheck: "false",
+    }) as HTMLInputElement;
+
+    const colorPicker = h("div", { style: "display:flex;gap:6px;align-items:center" });
+    for (const color of PRESET_COLORS) {
+      const dotBtn = h("button", {
+        style: `width:20px;height:20px;min-width:20px;padding:0;border-radius:50%;background:${color};border:2px solid ${color === selectedColor ? '#fff' : 'transparent'};cursor:pointer`,
+      });
+      dotBtn.addEventListener("click", () => {
+        selectedColor = color;
+        for (const child of Array.from(colorPicker.children) as HTMLElement[]) {
+          child.style.borderColor = "transparent";
+        }
+        dotBtn.style.borderColor = "#fff";
+      });
+      colorPicker.append(dotBtn);
+    }
+
+    const form = h("div", { style: "display:flex;flex-direction:column;gap:10px;background:rgba(255,255,255,0.04);padding:14px;border-radius:10px" },
+      h("b", { style: "font-size:13px", text: "New Custom Integration" }),
+      h("div", { class: "row" }, h("label", { style: "min-width:90px", text: "Name" }), nameInput),
+      h("div", { class: "row" }, h("label", { style: "min-width:90px", text: "URL" }), urlInput),
+      h("div", { class: "row" }, h("label", { style: "min-width:90px", text: "API Key" }), keyInput),
+      h("div", { class: "row" }, h("label", { style: "min-width:90px", text: "Color" }), colorPicker),
+      h("div", { class: "hint", text: "Tip: Keys are saved securely in Windows Credential Manager. You can also route terminal events via coucou-hook.exe --agent <name>" }),
+      h("div", { class: "row", style: "margin-top:6px" },
+        h("button", {
+          class: "primary",
+          text: "Create",
+          onclick: async () => {
+            const name = nameInput.value.trim();
+            if (!name) return;
+            const id = "custom_" + name.toLowerCase().replace(/[^a-z0-9]/g, "_") + "_" + Date.now().toString().slice(-4);
+            const token = keyInput.value.trim();
+            if (token) {
+              try {
+                await Bridge.secretSet(`custom-${id}-key`, token);
+              } catch (e) {
+                console.error("Could not save custom secret", e);
+              }
+            }
+            const newIntegration = {
+              id,
+              name,
+              color: selectedColor,
+              url: urlInput.value.trim(),
+            };
+            settings.customIntegrations = settings.customIntegrations || [];
+            settings.customIntegrations.push(newIntegration);
+            if (settings.activeIntegrations.length < MAX_ACTIVE) {
+              settings.activeIntegrations.push(id);
+            }
+            updateNote();
+            renderCustomList();
+            void save();
+          },
+        }),
+        h("button", {
+          text: "Cancel",
+          onclick: () => renderCustomList(),
+        }),
+      ),
+    );
+
+    customContainer.append(form);
+  }
+
+  renderCustomList();
   updateNote();
-  return h("section", {}, h("h2", {}, h("span", { text: "Integrations" })), note, list);
+  return h("section", {}, h("h2", {}, h("span", { text: "Integrations" })), note, list, customContainer);
 }
 
 // ── General section ───────────────────────────────────────────────────────────
@@ -440,7 +595,7 @@ async function main() {
 
   clear(root);
   root.append(
-    h("h1", {}, h("span", { text: "Coucou" }), h("span", { class: "version", text: version })),
+    h("h1", {}, h("span", { text: "MaoMao" }), h("span", { class: "version", text: version })),
     claudeSection(status),
     apiSection(hasKey),
     integrationsSection(present),

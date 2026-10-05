@@ -78,7 +78,7 @@ fn decision_json(decision: &str) -> Option<String> {
         // "always" still answers a plain allow; remembering it is the island's
         // business, not Claude Code's.
         "allow" | "always" => r#"{"behavior":"allow"}"#.to_string(),
-        "deny" => r#"{"behavior":"deny","message":"Denied from Coucou"}"#.to_string(),
+        "deny" => r#"{"behavior":"deny","message":"Denied from MaoMao"}"#.to_string(),
         _ => return None,
     };
     Some(format!(
@@ -161,11 +161,84 @@ fn read_event() -> Option<(String, String)> {
         }
     }
 
+    if !map.contains_key("terminal_app") {
+        map.insert("terminal_app".into(), serde_json::Value::String(detect_terminal_app()));
+    }
+
     truncate_strings(&mut payload);
 
     let mut line = payload.to_string();
     line.push('\n');
     Some((line, event))
+}
+
+fn detect_terminal_app() -> String {
+    let env = |k: &str| std::env::var(k).unwrap_or_default();
+    let term_prog = env("TERM_PROGRAM").to_lowercase();
+
+    // Check all environment variables for fork-specific identifiers
+    let vars: Vec<(String, String)> = std::env::vars()
+        .map(|(k, v)| (k.to_lowercase(), v.to_lowercase()))
+        .collect();
+
+    let has_keyword = |kw: &str| {
+        vars.iter().any(|(k, v)| {
+            if k == "path" {
+                v.contains(kw)
+            } else {
+                k.contains(kw) || v.contains(kw)
+            }
+        })
+    };
+
+    if has_keyword("antigravity") || term_prog.contains("antigravity") {
+        return "Antigravity".into();
+    }
+    if has_keyword("cursor") || term_prog.contains("cursor") {
+        return "Cursor".into();
+    }
+    if has_keyword("windsurf") || term_prog.contains("windsurf") {
+        return "Windsurf".into();
+    }
+    if has_keyword("positron") || term_prog.contains("positron") {
+        return "Positron".into();
+    }
+    if !env("VSCODE_PID").is_empty()
+        || !env("VSCODE_INJECTION").is_empty()
+        || term_prog.contains("vscode")
+    {
+        return "VS Code".into();
+    }
+    if term_prog.contains("ghostty") {
+        return "Ghostty".into();
+    }
+    if term_prog.contains("warp") {
+        return "Warp".into();
+    }
+    if term_prog.contains("iterm") {
+        return "iTerm".into();
+    }
+    if term_prog.contains("mintty") {
+        return "Git Bash".into();
+    }
+    if !env("WT_SESSION").is_empty() {
+        if !env("PSModulePath").is_empty() || !env("POWERSHELL_DISTRIBUTION_CHANNEL").is_empty() {
+            return "PowerShell".into();
+        }
+        return "Windows Terminal".into();
+    }
+    if !env("POWERSHELL_DISTRIBUTION_CHANNEL").is_empty()
+        || !env("PSExecutionPolicyPreference").is_empty()
+    {
+        return "PowerShell".into();
+    }
+    if !env("PROMPT").is_empty() {
+        return "Cmd".into();
+    }
+    if !term_prog.is_empty() {
+        return term_prog;
+    }
+    "Terminal".into()
 }
 
 /// Caps every string in the payload. A single Write can carry a whole file.
@@ -231,7 +304,7 @@ mod tests {
         );
         assert_eq!(
             decision_json("deny").unwrap(),
-            r#"{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"deny","message":"Denied from Coucou"}}}"#
+            r#"{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"deny","message":"Denied from MaoMao"}}}"#
         );
         // "always" is an island concept; Claude Code just gets an allow.
         assert!(decision_json("always").unwrap().contains(r#""behavior":"allow""#));

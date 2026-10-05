@@ -249,9 +249,9 @@ function rr(x: CanvasRenderingContext2D, X: number, Y: number, W: number, H: num
 }
 
 function mochiPath(hw: number, hh: number): Path2D {
-  const n = 3.2;
+  const n = 2.5;
   const p = new Path2D();
-  const steps = 96;
+  const steps = 72;
   for (let i = 0; i <= steps; i++) {
     const a = (i / steps) * 2 * Math.PI;
     const ca = Math.cos(a);
@@ -265,17 +265,27 @@ function mochiPath(hw: number, hh: number): Path2D {
   return p;
 }
 
-function whiteFill(
-  x: CanvasRenderingContext2D, path: Path2D,
-  x0: number, y0: number, x1: number, y1: number,
-) {
-  const g = x.createLinearGradient(x0, y0, x1, y1);
-  g.addColorStop(0, "rgb(251,251,252)");
-  g.addColorStop(1, "rgb(231,233,236)");
-  x.save();
-  x.fillStyle = g;
-  x.fill(path);
-  x.restore();
+const KEFF_RED = "#BD2828";
+const KEFF_WHITE = "#FAF8F5";
+const SKIN = "#DFC4AE";
+
+let greetKeffTile: HTMLCanvasElement | null = null;
+function greetKeffPattern(x: CanvasRenderingContext2D): CanvasPattern | null {
+  if (typeof document === "undefined") return null;
+  if (!greetKeffTile) {
+    greetKeffTile = document.createElement("canvas");
+    greetKeffTile.width = greetKeffTile.height = 16;
+    const t = greetKeffTile.getContext("2d");
+    if (!t) return null;
+    t.fillStyle = KEFF_WHITE;
+    t.fillRect(0, 0, 16, 16);
+    t.fillStyle = KEFF_RED;
+    t.fillRect(0, 0, 8, 8);
+    t.fillRect(8, 8, 8, 8);
+    t.beginPath(); t.moveTo(8, 0); t.lineTo(16, 8); t.lineTo(8, 8); t.closePath(); t.fill();
+    t.beginPath(); t.moveTo(0, 8); t.lineTo(8, 16); t.lineTo(8, 8); t.closePath(); t.fill();
+  }
+  return x.createPattern(greetKeffTile, "repeat");
 }
 
 function drawHandL(x: CanvasRenderingContext2D, hw: number, hh: number, p: Pose) {
@@ -290,8 +300,12 @@ function drawHandL(x: CanvasRenderingContext2D, hw: number, hh: number, p: Pose)
   x.translate(rx, ry);
   const circ = new Path2D();
   circ.ellipse(0, 0, r, r, 0, 0, Math.PI * 2);
-  whiteFill(x, circ, r, -r, -r, r);
-  x.strokeStyle = "rgba(0,0,0,0.08)";
+  const g = x.createLinearGradient(r, -r, -r, r);
+  g.addColorStop(0, "#F0CBA4");
+  g.addColorStop(1, "#CFB098");
+  x.fillStyle = g;
+  x.fill(circ);
+  x.strokeStyle = "rgba(0,0,0,0.1)";
   x.lineWidth = 0.8;
   x.stroke(circ);
   x.restore();
@@ -316,23 +330,23 @@ function drawHandR(x: CanvasRenderingContext2D, hw: number, hh: number, p: Pose)
   x.translate(rx, ry);
   x.rotate(ang);
   const g = x.createLinearGradient(L / 2, -T2 / 2, -L / 2, T2 / 2);
-  g.addColorStop(0, "rgb(251,251,252)");
-  g.addColorStop(1, "rgb(231,233,236)");
+  g.addColorStop(0, "#F0CBA4");
+  g.addColorStop(1, "#CFB098");
   rr(x, -L / 2, -T2 / 2, L, T2, T2 / 2);
   x.fillStyle = g;
   x.fill();
-  x.strokeStyle = "rgba(0,0,0,0.08)";
+  x.strokeStyle = "rgba(0,0,0,0.1)";
   x.lineWidth = 0.8;
   x.stroke();
   x.restore();
 }
 
-function drawMochi(x: CanvasRenderingContext2D, p: Pose) {
+function drawMaoMaoGreeting(x: CanvasRenderingContext2D, p: Pose) {
   const hh = p.hb / 2;
-  const hw = hh * ASP;
+  const hw = hh * 0.94;
   if (hh <= 0.4) return;
 
-  // Halo: golden → blue, two passes for a soft aura
+  // Halo aura
   if (p.halo > 0) {
     const bl = p.haloBlue;
     const cr = Math.round(lerp(232, 59, bl));
@@ -357,12 +371,50 @@ function drawMochi(x: CanvasRenderingContext2D, p: Pose) {
   drawHandL(x, hw, hh, p);
   drawHandR(x, hw, hh, p);
 
+  // 1. Keffiyeh drapes behind
+  const kp = new Path2D();
+  // Calotte
+  kp.moveTo(-hw * 1.02, -hh * 0.45);
+  kp.bezierCurveTo(-hw * 1.05, -hh * 1.18, hw * 1.05, -hh * 1.18, hw * 1.02, -hh * 0.45);
+  kp.bezierCurveTo(hw * 0.85, -hh * 0.65, -hw * 0.85, -hh * 0.65, -hw * 1.02, -hh * 0.45);
+  kp.closePath();
+  // Pans
+  for (const sd of [-1, 1]) {
+    kp.moveTo(sd * hw * 0.85, -hh * 0.50);
+    kp.bezierCurveTo(sd * hw * 1.25, -hh * 0.10, sd * hw * 1.28, hh * 0.50, sd * hw * 1.08, hh * 0.98);
+    kp.lineTo(sd * hw * 0.96, hh * 0.92);
+    kp.lineTo(sd * hw * 0.84, hh * 0.98);
+    kp.lineTo(sd * hw * 0.72, hh * 0.90);
+    kp.bezierCurveTo(sd * hw * 0.78, hh * 0.40, sd * hw * 0.85, -hh * 0.10, sd * hw * 0.68, -hh * 0.45);
+    kp.closePath();
+  }
+
+  x.fillStyle = KEFF_WHITE;
+  x.fill(kp);
+  x.save();
+  x.clip(kp);
+  const pat = greetKeffPattern(x);
+  if (pat) {
+    x.fillStyle = pat;
+    x.fillRect(-hw * 1.5, -hh * 1.5, hw * 3, hh * 3);
+  }
+  x.restore();
+  x.strokeStyle = "rgba(0,0,0,0.15)";
+  x.lineWidth = 1;
+  x.stroke(kp);
+
+  // 2. Balaclava Heather Grey Body
   const body = mochiPath(hw, hh);
-  whiteFill(x, body, hw * 0.6, -hh, -hw * 0.6, hh);
+  const bg = x.createLinearGradient(hw * 0.4, -hh * 0.9, -hw * 0.5, hh * 0.95);
+  bg.addColorStop(0, "#A8ADB8");
+  bg.addColorStop(0.5, "#8E939D");
+  bg.addColorStop(1, "#757A85");
+  x.fillStyle = bg;
+  x.fill(body);
 
   if (p.tint > 0) {
-    const g = x.createLinearGradient(0, hh, 0, -hh * 0.1);
-    g.addColorStop(0, `rgba(127,180,234,${p.tint})`);
+    const g = x.createRadialGradient(0, hh * 0.4, 0, 0, hh * 0.4, hw * 1.3);
+    g.addColorStop(0, `rgba(127,180,234,${p.tint * 0.5})`);
     g.addColorStop(1, "rgba(127,180,234,0)");
     x.save();
     x.clip(body);
@@ -371,39 +423,90 @@ function drawMochi(x: CanvasRenderingContext2D, p: Pose) {
     x.restore();
   }
 
-  // Eyes
+  // 3. Sleepy / Chill Eyes
   x.save();
   x.clip(body);
-  x.fillStyle = "#16171A";
-  x.strokeStyle = "#16171A";
-  const er = p.hb * 0.06;
-  const sp = p.hb * 0.19;
-  const lx = p.lookX * hw * 0.42;
-  const ly = p.lookY * hh * 0.28 + hh * 0.12 + p.eyeRoll * hh * 1.25;
+
+  const ew = hw * 0.35;
+  const eh = hh * 0.45;
+  const sp = hw * 0.42;
+  const lx = p.lookX * hw * 0.22;
+  const ly = -hh * 0.06 + p.lookY * hh * 0.15 + p.eyeRoll * hh * 0.8;
+
   for (const sd of [-1, 1]) {
     x.save();
     x.translate(sd * sp + lx, ly);
+
+    // Padded beige rim
+    x.fillStyle = SKIN;
+    x.beginPath();
+    x.ellipse(0, 0, ew * 1.06, eh * 1.06, 0, 0, Math.PI * 2);
+    x.fill();
+
+    x.save();
+    x.beginPath();
+    x.ellipse(0, 0, ew * 0.82, eh * 0.84, 0, 0, Math.PI * 2);
+    x.clip();
+
+    // Sclera
+    x.fillStyle = "#FAF8F5";
+    x.fillRect(-ew, -eh, ew * 2, eh * 2);
+
     if (p.eye === "happy") {
-      x.lineWidth = er * 0.95;
+      x.fillStyle = SKIN;
+      x.fillRect(-ew, -eh, ew * 2, eh * 2);
+      x.strokeStyle = "#16171A";
+      x.lineWidth = ew * 0.42;
       x.lineCap = "round";
       x.beginPath();
-      x.arc(0, er * 0.6, er * 1.25, Math.PI * 1.15, Math.PI * 1.85);
+      x.arc(0, eh * 0.30, ew * 0.62, Math.PI * 1.15, Math.PI * 1.85);
       x.stroke();
     } else if (p.eye === "content") {
-      x.lineWidth = er * 0.95;
+      x.fillStyle = SKIN;
+      x.fillRect(-ew, -eh, ew * 2, eh * 2);
+      x.strokeStyle = "#16171A";
+      x.lineWidth = ew * 0.42;
       x.lineCap = "round";
       x.beginPath();
-      x.arc(0, -er * 0.5, er * 1.25, Math.PI * 0.15, Math.PI * 0.85);
+      x.arc(0, -eh * 0.05, ew * 0.62, Math.PI * 0.15, Math.PI * 0.85);
       x.stroke();
     } else {
-      x.scale(1, Math.max(0.12, p.open));
+      // Pupil
+      const pupilR = Math.min(ew, eh) * 0.52;
+      x.fillStyle = "#16171A";
       x.beginPath();
-      x.arc(0, 0, er, 0, Math.PI * 2);
+      x.arc(0, eh * 0.12, pupilR, 0, Math.PI * 2);
       x.fill();
+
+      // Highlights
+      x.fillStyle = "rgba(255,255,255,0.9)";
+      x.beginPath();
+      x.arc(-pupilR * 0.32, eh * 0.12 - pupilR * 0.32, pupilR * 0.30, 0, Math.PI * 2);
+      x.fill();
+
+      // Droopy lid
+      const lidY = -eh * 0.84 + eh * 1.68 * (1 - p.open * 0.55);
+      x.fillStyle = SKIN;
+      x.beginPath();
+      x.moveTo(-ew, -eh);
+      x.lineTo(ew, -eh);
+      x.lineTo(ew, lidY);
+      x.quadraticCurveTo(0, lidY + eh * 0.08, -ew, lidY);
+      x.closePath();
+      x.fill();
+
+      x.strokeStyle = "rgba(90,60,40,0.35)";
+      x.lineWidth = Math.max(1, ew * 0.06);
+      x.beginPath();
+      x.moveTo(-ew * 0.75, lidY);
+      x.quadraticCurveTo(0, lidY + eh * 0.08, ew * 0.75, lidY);
+      x.stroke();
     }
-    x.restore();
+
+    x.restore(); // end clip
+    x.restore(); // end eye transform
   }
-  x.restore();
+  x.restore(); // end body clip
 
   // Activity badge
   if (p.badge > 0.01) {
@@ -429,6 +532,10 @@ function drawMochi(x: CanvasRenderingContext2D, p: Pose) {
   }
 
   x.restore();
+}
+
+function drawMochi(x: CanvasRenderingContext2D, p: Pose) {
+  drawMaoMaoGreeting(x, p);
 }
 
 function drawParticles(x: CanvasRenderingContext2D, t: number, p: Pose) {

@@ -1,4 +1,5 @@
 // Mochi — direct port of NotchBuddy/Sources/App/BotEngine.swift to Canvas 2D.
+// Island code imports this via `src/mascot/` (the swap point for a MaoMao body).
 // Same constants, same tweens, same easings, same particles. The only intentional
 // difference is the `happy`/`wink` eye arc, which follows the prototype
 // (design/prototype/notch-buddy.html, the visual source of truth) — the Swift
@@ -60,14 +61,14 @@ interface Particle {
 
 // ── Constants (MochiConst / PISTES.mochi) ─────────────────────────────────────
 
-const EYE_W = 0.25;
-const EYE_H = 0.27;
-const EYE_SP = 0.37;
-const EYE_P = -0.12;
-const BASE_TOP: RGB = [0.929, 0.929, 0.937]; // #EDEDEF
-const BASE_BOTTOM: RGB = [0.769, 0.773, 0.792]; // #C4C5CA
-const INK = "rgb(26,20,18)"; // #1A1412
-const MINI_INK = "rgb(16,19,26)"; // #10131A
+const EYE_W = 0.32;
+const EYE_H = 0.44;
+const EYE_SP = 0.36;
+const EYE_P = 0.02;
+const BASE_TOP: RGB = [0.66, 0.68, 0.72]; // #A8ADB8 Heather grey
+const BASE_BOTTOM: RGB = [0.46, 0.48, 0.52]; // #757A85
+const INK = "rgb(24,21,28)"; // #18151C
+const MINI_INK = "rgb(18,16,22)"; // #121016
 
 const C = {
   idle: [0.902, 0.914, 0.933] as RGB,
@@ -158,6 +159,62 @@ function starPath(x: CanvasRenderingContext2D, ro: number, ri: number) {
     x.lineTo(Math.cos(a) * r, Math.sin(a) * r);
   }
   x.closePath();
+}
+
+// ── MaoMao : géométrie & motifs (100% procédural) ───────────────────────────
+type PathLike = Path2D | CanvasRenderingContext2D;
+
+const KEFF_RED = "#BD2828";
+const KEFF_WHITE = "#FAF8F5";
+const SKIN = "#DFC4AE";        // cerclage matelassé des orbites, paupières, mains
+const SKIN_SHADE = "#CFB098";
+const KNIT_COLLAR = "#C8CAD0";
+const THOBE_TOP = "#FAF9F7";
+const THOBE_BOTTOM = "#DFDDD8";
+const LEATHER = "#1B1C20";     // agal, bandoulière, sacoche
+
+/** Tracé du Keffieh complet : Calotte sur la tête + deux pans latéraux drapés */
+function traceKeffiyehFull(p: PathLike, rx: number, ry: number) {
+  // Calotte supérieure
+  p.moveTo(-rx * 1.02, -ry * 0.45);
+  p.bezierCurveTo(-rx * 1.05, -ry * 1.18, rx * 1.05, -ry * 1.18, rx * 1.02, -ry * 0.45);
+  p.bezierCurveTo(rx * 0.85, -ry * 0.65, -rx * 0.85, -ry * 0.65, -rx * 1.02, -ry * 0.45);
+  p.closePath();
+
+  // Pans latéraux
+  for (const sd of [-1, 1]) {
+    p.moveTo(sd * rx * 0.85, -ry * 0.50);
+    p.bezierCurveTo(sd * rx * 1.25, -ry * 0.10, sd * rx * 1.28, ry * 0.50, sd * rx * 1.08, ry * 0.98);
+    p.lineTo(sd * rx * 0.96, ry * 0.92);
+    p.lineTo(sd * rx * 0.84, ry * 0.98);
+    p.lineTo(sd * rx * 0.72, ry * 0.90);
+    p.bezierCurveTo(sd * rx * 0.78, ry * 0.40, sd * rx * 0.85, -ry * 0.10, sd * rx * 0.68, -ry * 0.45);
+    p.closePath();
+  }
+}
+
+/** Motif keffieh (houndstooth / damier) généré dans un tile offscreen. */
+const keffPatternCache = new Map<string, CanvasPattern>();
+function keffPattern(x: CanvasRenderingContext2D, customColor?: string): CanvasPattern | null {
+  if (typeof document === "undefined") return null;
+  const col = customColor ?? KEFF_RED;
+  const cached = keffPatternCache.get(col);
+  if (cached) return cached;
+
+  const tile = document.createElement("canvas");
+  tile.width = tile.height = 16;
+  const t = tile.getContext("2d");
+  if (!t) return null;
+  t.fillStyle = KEFF_WHITE;
+  t.fillRect(0, 0, 16, 16);
+  t.fillStyle = col;
+  t.fillRect(0, 0, 8, 8);
+  t.fillRect(8, 8, 8, 8);
+  t.beginPath(); t.moveTo(8, 0); t.lineTo(16, 8); t.lineTo(8, 8); t.closePath(); t.fill();
+  t.beginPath(); t.moveTo(0, 8); t.lineTo(8, 16); t.lineTo(8, 8); t.closePath(); t.fill();
+  const pat = x.createPattern(tile, "repeat");
+  if (pat) keffPatternCache.set(col, pat);
+  return pat;
 }
 
 const FONT = `system-ui, "Segoe UI Variable Text", "Segoe UI", sans-serif`;
@@ -641,11 +698,11 @@ export class BotEngine {
    * `w`×`h` CSS pixels (the caller has already applied the DPR transform).
    */
   draw(x: CanvasRenderingContext2D, W: number, H: number) {
-    const R = W * 0.3;
-    const rx = R * 1.14;
-    const ry = R * 0.88;
+    const R = Math.min(W, H) * 0.38;
+    const rx = R * 0.94;
+    const ry = R * 1.08;
     const cx = W / 2 + this.ox * R;
-    const cy = H / 2 + this.particleOverhang / 2 + this.oy * R + R * 0.06;
+    const cy = H / 2 + this.particleOverhang / 2 + this.oy * R - R * 0.02;
 
     this.drawHandsBehind(x, R, rx, ry, cx, cy);
 
@@ -665,14 +722,14 @@ export class BotEngine {
       x.fillStyle = `rgba(255,120,150,${0.5 * blushVal})`;
       for (const sd of [-1, 1]) {
         x.beginPath();
-        x.ellipse(sd * rx * 0.55 + yOffset, ry * 0.2, R * 0.17, R * 0.1, 0, 0, Math.PI * 2);
+        x.ellipse(sd * rx * 0.65 + yOffset, ry * 0.18, R * 0.14, R * 0.08, 0, 0, Math.PI * 2);
         x.fill();
       }
       x.restore();
     }
 
     this.drawEyes(x, body, R, rx, ry);
-    if (this.morph > 0.05) this.drawMouth(x, body, R);
+    this.drawMouth(x, body, R);
 
     x.restore();
 
@@ -684,7 +741,7 @@ export class BotEngine {
 
   private bodyPath(rx: number, ry: number, R: number): Path2D {
     const n = 72;
-    const expN = 2.0 / 2.7;
+    const expN = 2.0 / 2.5;
     const tw = R * 1.0;
     const th = R * 0.94;
     const tr = R * 0.42;
@@ -711,39 +768,171 @@ export class BotEngine {
   }
 
   private drawBody(x: CanvasRenderingContext2D, body: Path2D, R: number, rx: number, ry: number) {
-    if (this.bodyColor) {
-      // Mini bots: flat solid fill — no gradient, no reflection, no highlight
-      x.fillStyle = rgba(this.bodyColor, 1);
-      x.fill(body);
-      return;
-    }
-    const g = x.createLinearGradient(rx * 0.7, -ry * 0.85, -rx * 0.8, ry * 0.9);
+    const m = this.morph;
+    const acc = 1 - m;
+    const mini = this.isMini || !!this.bodyColor;
+
+    // ── 1. Balaclava Base Gradient (Always crisp heather-grey) ──
+    const g = x.createLinearGradient(rx * 0.4, -ry * 0.9, -rx * 0.5, ry * 0.95);
     g.addColorStop(0, rgba(BASE_TOP));
+    g.addColorStop(0.5, "#8E939D");
     g.addColorStop(1, rgba(BASE_BOTTOM));
     x.fillStyle = g;
     x.fill(body);
 
-    const effectiveTint = this.tint * (1 - this.morph);
+    x.save();
+    x.clip(body);
+
+    // Subtle state tint as bottom ambient glow (never destroys the grey balaclava)
+    const effectiveTint = this.tint * acc;
     if (effectiveTint > 0.01) {
-      const tg = x.createLinearGradient(0, ry, 0, -ry);
-      tg.addColorStop(0, rgba(this.col, 0.72 * effectiveTint));
+      const tg = x.createRadialGradient(0, ry * 0.5, 0, 0, ry * 0.5, R * 1.2);
+      tg.addColorStop(0, rgba(this.col, 0.45 * effectiveTint));
+      tg.addColorStop(0.8, rgba(this.col, 0.1 * effectiveTint));
       tg.addColorStop(1, rgba(this.col, 0));
       x.fillStyle = tg;
       x.fill(body);
     }
 
-    const sh = x.createRadialGradient(0, 0, R * 0.15, 0, 0, R * 1.25);
+    // Knit vertical micro-ribs
+    if (!mini && acc > 0.01 && R > 15) {
+      x.strokeStyle = "rgba(255, 255, 255, 0.06)";
+      x.lineWidth = 1;
+      for (let gx = -rx * 0.9; gx <= rx * 0.9; gx += rx * 0.12) {
+        x.beginPath();
+        x.moveTo(gx, -ry);
+        x.lineTo(gx, ry);
+        x.stroke();
+      }
+    }
+
+    // Spherical 3D shading
+    const sh = x.createRadialGradient(0, 0, R * 0.2, 0, 0, R * 1.2);
     sh.addColorStop(0, "rgba(0,0,0,0)");
-    sh.addColorStop(0.6, "rgba(0,0,0,0)");
-    sh.addColorStop(1, "rgba(0,0,0,0.2)");
+    sh.addColorStop(0.65, "rgba(0,0,0,0.06)");
+    sh.addColorStop(1, "rgba(0,0,0,0.35)");
     x.fillStyle = sh;
     x.fill(body);
 
-    const hl = x.createRadialGradient(rx * 0.34, -ry * 0.46, 0, rx * 0.34, -ry * 0.46, R * 0.42);
-    hl.addColorStop(0, "rgba(255,255,255,0.55)");
+    // Soft specular highlight on forehead
+    const hl = x.createRadialGradient(rx * 0.25, -ry * 0.45, 0, rx * 0.25, -ry * 0.45, R * 0.4);
+    hl.addColorStop(0, "rgba(255,255,255,0.45)");
     hl.addColorStop(1, "rgba(255,255,255,0)");
     x.fillStyle = hl;
     x.fill(body);
+
+    // ── 2. Thobe / Qamis chest piece + collar + strap (when large) ──
+    if (!mini && acc > 0.01) {
+      const thobeY = ry * 0.62;
+      const tg2 = x.createLinearGradient(0, thobeY, 0, ry);
+      tg2.addColorStop(0, THOBE_TOP);
+      tg2.addColorStop(1, THOBE_BOTTOM);
+      x.fillStyle = tg2;
+      x.beginPath();
+      x.moveTo(-rx, thobeY);
+      x.quadraticCurveTo(0, thobeY - ry * 0.12, rx, thobeY);
+      x.lineTo(rx * 1.1, ry * 1.1);
+      x.lineTo(-rx * 1.1, ry * 1.1);
+      x.closePath();
+      x.fill();
+
+      // Knit neck collar ribbing
+      x.fillStyle = KNIT_COLLAR;
+      x.beginPath();
+      x.ellipse(0, thobeY - ry * 0.05, rx * 0.48, ry * 0.12, 0, 0, Math.PI * 2);
+      x.fill();
+
+      // Button placket
+      x.strokeStyle = "#DDDCD6";
+      x.lineWidth = 1.5;
+      x.beginPath();
+      x.moveTo(0, thobeY);
+      x.lineTo(0, ry);
+      x.stroke();
+
+      x.fillStyle = "#E8E6E0";
+      for (const by of [0.74, 0.88]) {
+        x.beginPath();
+        x.arc(0, ry * by, 2, 0, Math.PI * 2);
+        x.fill();
+      }
+
+      // Pocket
+      x.strokeStyle = "#D2D0C8";
+      x.lineWidth = 1;
+      roundRectPath(x, rx * 0.26, ry * 0.68, rx * 0.22, ry * 0.16, 2);
+      x.stroke();
+
+      // Crossbody leather bag strap
+      x.strokeStyle = LEATHER;
+      x.lineWidth = Math.max(2, rx * 0.05);
+      x.beginPath();
+      x.moveTo(-rx * 0.5, thobeY);
+      x.lineTo(rx * 0.35, ry * 0.95);
+      x.stroke();
+
+      // Small bag
+      x.fillStyle = LEATHER;
+      roundRectPath(x, rx * 0.28, ry * 0.82, rx * 0.24, ry * 0.20, 3);
+      x.fill();
+    }
+
+    x.restore(); // end body clip
+
+    // ── 3. Draw Keffiyeh & Agal over the head ──
+    this.drawKeffiyeh(x, rx, ry, acc);
+  }
+
+  /** Keffieh (motif ou teinte bodyColor en mini) + agal noir tressé. */
+  private drawKeffiyeh(x: CanvasRenderingContext2D, rx: number, ry: number, alpha: number) {
+    if (alpha <= 0.01) return;
+    const mini = this.isMini || !!this.bodyColor;
+    x.save();
+    x.globalAlpha = alpha;
+
+    const kp = new Path2D();
+    traceKeffiyehFull(kp, rx, ry);
+
+    // Keffiyeh shadow
+    x.shadowColor = "rgba(0, 0, 0, 0.30)";
+    x.shadowBlur = rx * 0.2;
+    x.shadowOffsetY = ry * 0.05;
+
+    // Base fill
+    x.fillStyle = KEFF_WHITE;
+    x.fill(kp);
+    x.shadowColor = "transparent";
+
+    // Pattern fill
+    x.save();
+    x.clip(kp);
+
+    const customColor = (mini && this.bodyColor) ? rgba(this.bodyColor) : undefined;
+    const pat = keffPattern(x, customColor);
+    if (pat) {
+      x.fillStyle = pat;
+      x.fillRect(-rx * 1.5, -ry * 1.5, rx * 3, ry * 3);
+    } else {
+      x.fillStyle = customColor ?? KEFF_RED;
+      x.fill(kp);
+    }
+
+    // Fabric folds lighting
+    const fg = x.createRadialGradient(0, -ry * 0.5, rx * 0.3, 0, -ry * 0.5, rx * 1.4);
+    fg.addColorStop(0, "rgba(255, 255, 255, 0.25)");
+    fg.addColorStop(0.5, "rgba(0, 0, 0, 0)");
+    fg.addColorStop(1, "rgba(0, 0, 0, 0.40)");
+    x.fillStyle = fg;
+    x.fillRect(-rx * 1.5, -ry * 1.5, rx * 3, ry * 3);
+
+    x.restore();
+
+    // Border line
+    x.strokeStyle = "rgba(0, 0, 0, 0.15)";
+    x.lineWidth = 1;
+    x.stroke(kp);
+
+    x.restore();
   }
 
   private drawEyes(x: CanvasRenderingContext2D, body: Path2D, R: number, rx: number, ry: number) {
@@ -752,12 +941,11 @@ export class BotEngine {
       if (this.isChewing) shape = "happy";
       else if (this.slotHTarget > 0.05 || this.slotH > 0.1) shape = "cup";
     }
-
     x.save();
     x.clip(body);
     const ink = this.isMini ? MINI_INK : INK;
-    x.fillStyle = ink;
-    x.strokeStyle = ink;
+    const mult = this.isMini ? 1.15 : 1.0;
+    const m = this.morph;
 
     for (const sd of [-1, 1]) {
       const eyeYaw = sd * EYE_SP + this.yaw;
@@ -766,21 +954,125 @@ export class BotEngine {
       const cp = Math.cos(eyePitch);
       if (Math.cos(eyeYaw) * cp <= 0.04) continue;
 
-      const ex = Math.sin(eyeYaw) * cp * rx;
-      const ey = -Math.sin(eyePitch) * ry + (this.morph > 0 ? ry * 0.14 * this.morph : 0);
-      const fx = lerp(Math.max(0.18, Math.cos(eyeYaw)), 1, this.morph * 0.7);
-      const fy = lerp(Math.max(0.18, cp), 1, this.morph * 0.7);
-      const eyeMult = this.isMini ? 1.9 : 1.0;
-      const ew = R * EYE_W * this.es * eyeMult;
-      const eh = R * EYE_H * this.es * eyeMult;
+      const ex = Math.sin(eyeYaw) * cp * rx * 0.88;
+      const ey = -Math.sin(eyePitch) * ry * 0.65 - ry * 0.04 + ry * 0.14 * m;
+      const fx = lerp(Math.max(0.18, Math.cos(eyeYaw)), 1, m * 0.7);
+      const fy = lerp(Math.max(0.18, cp), 1, m * 0.7);
+      const rw = R * EYE_W * this.es * mult;
+      const rh = R * EYE_H * this.es * mult;
 
       x.save();
       x.translate(ex, ey);
       x.scale(fx, fy);
-      this.drawEyeShape(x, shape, ew, eh, sd, ink);
-      x.restore();
+
+      // Cerclage beige matelassé
+      x.fillStyle = SKIN;
+      x.beginPath();
+      x.ellipse(0, 0, rw * 1.06, rh * 1.06, 0, 0, Math.PI * 2);
+      x.fill();
+
+      // Shadow in cutout
+      x.strokeStyle = "rgba(0, 0, 0, 0.18)";
+      x.lineWidth = 1.5;
+      x.stroke();
+
+      x.save();
+      x.beginPath();
+      x.ellipse(0, 0, rw * 0.82, rh * 0.84, 0, 0, Math.PI * 2);
+      x.clip();
+
+      // Sclere
+      x.fillStyle = "#FAF8F5";
+      x.fillRect(-rw, -rh, rw * 2, rh * 2);
+
+      // Socket top depth shadow
+      const socketSh = x.createLinearGradient(0, -rh, 0, 0);
+      socketSh.addColorStop(0, "rgba(50, 35, 25, 0.25)");
+      socketSh.addColorStop(1, "rgba(50, 35, 25, 0)");
+      x.fillStyle = socketSh;
+      x.fillRect(-rw, -rh, rw * 2, rh);
+
+      const isWinkArc = shape === "wink" && sd > 0;
+      if (shape === "happy" || shape === "closed" || isWinkArc) {
+        x.fillStyle = SKIN;
+        x.fillRect(-rw, -rh, rw * 2, rh * 2);
+        x.strokeStyle = ink;
+        x.lineWidth = rw * 0.42;
+        x.lineCap = "round";
+        x.beginPath();
+        if (shape === "closed") x.arc(0, -rh * 0.05, rw * 0.62, Math.PI * 0.15, Math.PI * 0.85);
+        else x.arc(0, rh * 0.30, rw * 0.62, Math.PI * 1.15, Math.PI * 1.85);
+        x.stroke();
+      } else {
+        // Sleepy droop fraction
+        const baseLid: Partial<Record<EyeShape, number>> = {
+          pill: 0.44, wide: 0.18, dot: 0.30, line: 0.86, flat: 0.82, tired: 0.72, cup: 0.30,
+        };
+        const b = baseLid[shape] ?? 0.44;
+        const lid = Math.min(1, b + (1 - b) * (1 - this.open));
+        const px = this.lookX * rw * 0.22;
+        const py = (shape === "cup" ? -rh * 0.05 : rh * 0.16) + this.lookY * rh * 0.16;
+
+        if (shape === "spiral" || shape === "heart" || shape === "star") {
+          x.save();
+          x.translate(px, py);
+          this.drawEyeShape(x, shape, rw * 0.8, rh * 0.6, sd, ink);
+          x.restore();
+        } else {
+          const ps = shape === "dot" ? 0.6 : shape === "wide" ? 1.15 : 1;
+          const pupilR = Math.min(rw, rh) * 0.52 * ps;
+
+          // Pupil
+          x.fillStyle = ink;
+          x.beginPath();
+          x.arc(px, py, pupilR, 0, Math.PI * 2);
+          x.fill();
+
+          // Specular highlights
+          x.fillStyle = "rgba(255, 255, 255, 0.9)";
+          x.beginPath();
+          x.arc(px - pupilR * 0.32, py - pupilR * 0.32, pupilR * 0.30, 0, Math.PI * 2);
+          x.fill();
+
+          x.fillStyle = "rgba(255, 255, 255, 0.45)";
+          x.beginPath();
+          x.arc(px + pupilR * 0.30, py + pupilR * 0.28, pupilR * 0.14, 0, Math.PI * 2);
+          x.fill();
+        }
+
+        if (shape === "tired") {
+          x.strokeStyle = "rgba(0,0,0,0.12)";
+          x.lineWidth = rw * 0.10;
+          x.beginPath();
+          x.arc(0, rh * 0.55, rw * 0.5, Math.PI * 0.15, Math.PI * 0.85);
+          x.stroke();
+        }
+
+        // Droopy upper eyelid
+        const lidY = -rh * 0.84 + rh * 1.68 * lid;
+        const curve = shape === "line" || shape === "flat" ? rh * 0.02 : rh * 0.08;
+        x.fillStyle = SKIN;
+        x.beginPath();
+        x.moveTo(-rw, -rh);
+        x.lineTo(rw, -rh);
+        x.lineTo(rw, lidY);
+        x.quadraticCurveTo(0, lidY + curve, -rw, lidY);
+        x.closePath();
+        x.fill();
+
+        // Eyelid crease line
+        x.strokeStyle = "rgba(90, 60, 40, 0.35)";
+        x.lineWidth = Math.max(1, rw * 0.06);
+        x.beginPath();
+        x.moveTo(-rw * 0.75, lidY);
+        x.quadraticCurveTo(0, lidY + curve, rw * 0.75, lidY);
+        x.stroke();
+      }
+      x.restore(); // end sclera clip
+
+      x.restore(); // end eye transform
     }
-    x.restore();
+    x.restore(); // end body clip
   }
 
   private drawEyeShape(
@@ -891,18 +1183,24 @@ export class BotEngine {
     }
   }
 
-  /** Mailbox slot: dark pill cut into the box face, with rim and lip highlights. */
   private drawMouth(x: CanvasRenderingContext2D, body: Path2D, R: number) {
     const m = this.morph;
+    x.save();
+    x.clip(body);
+    // Visage tricoté : bouche sombre uniquement pendant le "gulp"
+    if (this.isChewing && m < 0.5) {
+      const k = 0.5 + 0.5 * Math.sin(now() * 18);
+      x.fillStyle = "#2A2020";
+      x.beginPath();
+      x.ellipse(0, R * 0.30, R * 0.10, R * 0.10 * (0.4 + 0.6 * k), 0, 0, Math.PI * 2);
+      x.fill();
+    }
+    // Slot mailbox
     const hW = R * 1.8 * m;
     const hH = this.slotH * R * m;
     const hX = -hW / 2;
     const boxTop = -R * (0.88 + 0.06 * m);
     const hY = boxTop + R * 0.08 * m;
-
-    x.save();
-    x.clip(body);
-
     x.strokeStyle = `rgba(255,255,255,${0.55 * m})`;
     x.lineWidth = 1;
     x.lineCap = "round";
@@ -910,7 +1208,6 @@ export class BotEngine {
     x.moveTo(-R * 0.9 * m, boxTop + 1);
     x.lineTo(R * 0.9 * m, boxTop + 1);
     x.stroke();
-
     if (hH > 0.8) {
       const hR = Math.min(hW / 2, hH / 2);
       const g = x.createLinearGradient(0, hY, 0, hY + hH);
@@ -937,7 +1234,7 @@ export class BotEngine {
     R: number, rx: number, ry: number, cx: number, cy: number,
   ) {
     if (this.hands <= 0.01 || this.isMini) return;
-    if (R <= 14) return; // meaningless at compact/peek sizes
+    if (R <= 14) return;
 
     const n = now();
     const bodyH = 2 * ry;
@@ -987,14 +1284,14 @@ export class BotEngine {
         g.addColorStop(0, rgba(mix3(this.bodyColor, [1, 1, 1], 0.35)));
         g.addColorStop(1, rgba(this.bodyColor));
       } else {
-        g.addColorStop(0, rgba(BASE_TOP));
-        g.addColorStop(1, rgba(BASE_BOTTOM));
+        g.addColorStop(0, "#F0CBA4");
+        g.addColorStop(1, SKIN_SHADE);
       }
       x.beginPath();
       x.ellipse(0, 0, hew, heh, 0, 0, Math.PI * 2);
       x.fillStyle = g;
       x.fill();
-      x.strokeStyle = "rgba(0,0,0,0.08)";
+      x.strokeStyle = "rgba(0,0,0,0.10)";
       x.lineWidth = 1;
       x.stroke();
       x.restore();

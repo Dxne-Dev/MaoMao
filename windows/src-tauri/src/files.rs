@@ -1,4 +1,4 @@
-// Dropped files are copied into %LOCALAPPDATA%\Coucou\inbox so the original is
+// Dropped files are copied into %LOCALAPPDATA%\MaoMao\inbox so the original is
 // never touched and the copy survives the drag source going away.
 // The inbox is swept of anything older than a week, as on macOS.
 

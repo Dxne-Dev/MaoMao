@@ -1,28 +1,28 @@
-# Coucou — name, character and artwork
+# MaoMao — nom, personnage et ressources artistiques
 
-Copyright (c) 2026 Louis Raillé. All rights reserved, except as stated below.
+Copyright (c) 2026 Dxne Dev. Tous droits réservés, sauf mention contraire ci-dessous.
 
-The [MIT License](LICENSE) covers the **source code** of Coucou. It does **not** cover the brand and the artwork listed here, which remain the property of Louis Raillé:
+La [Licence MIT](LICENSE) couvre le **code source** de MaoMao. Elle ne couvre **pas** la marque et les ressources artistiques listées ici, qui restent la propriété de Dxne Dev :
 
-- the names **“Coucou”** and **“Mochi”**;
-- the **Mochi character** — its design, look, expressions and animations as a character;
-- the **app icon** and **menu bar icon** (`NotchBuddy/Assets.xcassets/`);
-- the **sounds** (`NotchBuddy/Resources/sounds/`);
-- the **images, GIFs and videos** in `docs/media/` and `design/`.
+- le nom **"MaoMao"** ;
+- le personnage **Mochi** — son design, son apparence, ses expressions et ses animations en tant que personnage ;
+- l'**icône de l'application** et l'**icône de la barre des tâches** (`windows/src-tauri/icons/`) ;
+- les **sons** (`windows/src-tauri/src/sounds/`) ;
+- les **images, GIFs et vidéos** présents dans `docs/media/` et `design/`.
 
-## What you can do
+## Ce que vous pouvez faire
 
-- Build and run Coucou from this repository, for yourself, as it is.
-- Fork it and contribute back with pull requests.
-- Show, review, write or talk about Coucou (articles, videos, posts), including screenshots and the demo media.
+- Compiler et exécuter MaoMao depuis ce dépôt, pour votre usage personnel, tel quel.
+- Le forker et contribuer via des pull requests.
+- Parler de MaoMao, l'évaluer, écrire des articles ou des vidéos à son sujet (y compris captures d'écran et médias de démonstration).
 
-## What you can't do without written permission
+## Ce que vous ne pouvez pas faire sans autorisation écrite
 
-- Publish or distribute an app, a fork or a derivative work under the name “Coucou” or “Mochi”, or with the Coucou icon, the Mochi character or the Coucou sounds — on the App Store, on GitHub releases, or anywhere else.
-- Use any of these assets commercially, or in a way that suggests your project is Coucou or is made or endorsed by its author.
+- Publier ou distribuer une application, un fork ou une œuvre dérivée sous le nom "MaoMao" ou "Mochi", ou utilisant l'icône MaoMao, le personnage Mochi ou les sons MaoMao — sur le Microsoft Store, GitHub Releases, ou ailleurs.
+- Utiliser l'une de ces ressources à des fins commerciales, ou d'une manière qui laisserait croire que votre projet est MaoMao ou qu'il est réalisé ou approuvé par ses auteurs.
 
-If you fork Coucou to ship your own app, that's welcome under the MIT License: just give it **your own name, icon, character and sounds**.
+Si vous forkez MaoMao pour créer votre propre application, c'est bienvenu sous la Licence MIT : donnez-lui simplement **votre propre nom, icône, personnage et sons**.
 
-## Questions or permission requests
+## Questions ou demandes d'autorisation
 
-Open an issue on [GitHub](https://github.com/Louis-CFM/coucou/issues) or write to raillelouis@gmail.com.
+Ouvrez une issue sur [GitHub](https://github.com/Dxne-Dev/MaoMao/issues) ou contactez l'équipe via le dépôt.

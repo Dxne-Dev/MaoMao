@@ -11,9 +11,7 @@ import {
 } from "../core/layout";
 import { Sound } from "../core/sound";
 import { State } from "../core/state";
-import { BotEngine, hexToRGB } from "../mochi/engine";
-import { Greeting } from "../mochi/greeting";
-import { createMiniBot, pruneMiniBots, syncMiniBotStates, tickMiniBots } from "../mochi/minibots";
+import { BotEngine, Greeting, createMiniBot, hexToRGB, pruneMiniBots, syncMiniBotStates, tickMiniBots } from "../mascot";
 import { UploadCanvas } from "../upload/canvas";
 import { USC, UploadSeq } from "../upload/sequence";
 import { buildHeader, buildViews, type ViewActions, type ViewHost } from "../views/views";
@@ -203,7 +201,7 @@ export class Island {
     );
     this.islandEl = h(
       "div",
-      { id: "island" },
+      { id: "island", class: "glass3d" },
       this.clipEl,
       this.botGlow,
       this.botCanvas,
@@ -367,12 +365,7 @@ export class Island {
       }
       case "drop": {
         State.fileDragOver = false;
-        const path = e.paths?.[0];
-        if (!path) {
-          this.engine.animateMorph(0);
-          this.setView(State.defaultView());
-          return;
-        }
+        const path = e.paths?.[0] || "file.txt";
         this.swallow(path);
         break;
       }
@@ -403,6 +396,14 @@ export class Island {
     State.uploadProgress = 0;
     this.setView("uploading");
     this.ensureRunning();
+
+    if (path.startsWith("mock:")) {
+      const mockName = path.replace(/^mock:/, "");
+      State.droppedFile = { name: mockName, path: mockName };
+      State.promptContext = { kind: "file", name: mockName, path: mockName };
+      State.notify();
+      return;
+    }
 
     void Bridge.ingestFile(path)
       .then((file) => {
@@ -549,7 +550,42 @@ export class Island {
       State.lastActivity = performance.now();
     });
 
+    // Native Tauri drag & drop
     void onDragDrop((e) => this.onDragDrop(e));
+
+    // Standard HTML5 drag & drop fallback with counter to prevent child leave flicker
+    let dragCounter = 0;
+    window.addEventListener("dragenter", (e) => {
+      e.preventDefault();
+      dragCounter++;
+      if (dragCounter === 1) {
+        const files = Array.from(e.dataTransfer?.files || []);
+        const paths = files.map((f: any) => f.path || f.name).filter(Boolean);
+        this.onDragDrop({ type: "enter", paths });
+      }
+    });
+    window.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
+      if (!State.fileDragOver) {
+        this.onDragDrop({ type: "over" });
+      }
+    });
+    window.addEventListener("dragleave", (e) => {
+      e.preventDefault();
+      dragCounter--;
+      if (dragCounter <= 0) {
+        dragCounter = 0;
+        this.onDragDrop({ type: "leave" });
+      }
+    });
+    window.addEventListener("drop", (e) => {
+      e.preventDefault();
+      dragCounter = 0;
+      const files = Array.from(e.dataTransfer?.files || []);
+      const paths = files.map((f: any) => f.path || f.name).filter(Boolean);
+      this.onDragDrop({ type: "drop", paths });
+    });
 
     // Outside Tauri (plain browser) drive the cursor from DOM events so the
     // island can be inspected with `npm run dev`.

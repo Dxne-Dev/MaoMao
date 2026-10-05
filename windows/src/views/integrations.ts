@@ -110,7 +110,7 @@ function idleCard(task: AgentTask, openSettings: () => void): HTMLElement {
   return h(
     "div",
     { class: "int-card" },
-    header(task.color, task.id === "integration_claude" ? "VS Code" : task.name, "Integration"),
+    header(task.color, task.name, "Integration"),
     h("div", { class: "int-status" }, dot(statusColor, 5), h("span", { text: label })),
     actions,
   );
@@ -403,7 +403,42 @@ export function hasIntegrationData(id: string): boolean {
   }
 }
 
+function customCard(task: AgentTask, openSettings: () => void): HTMLElement {
+  const customConfig = State.settings.customIntegrations?.find((c) => c.id === task.id);
+  const url = customConfig?.url?.trim();
+  const statusColor = task.color || "#3b82f6";
+
+  const actions = h("div", { class: "int-actions" });
+  if (url) {
+    actions.append(
+      h("button", {
+        class: "link-btn",
+        style: `color:${task.color}d9`,
+        text: `Open ${task.name}`,
+        onclick: () => void Bridge.openUrl(url),
+      }),
+    );
+  }
+  actions.append(
+    h("button", { class: "link-btn", style: "color:#8e939c", text: "Settings…", onclick: openSettings }),
+  );
+
+  return h(
+    "div",
+    { class: "int-card" },
+    header(task.color, task.name, "Custom Integration"),
+    h("div", { class: "int-status" },
+      dot(statusColor, 5),
+      h("span", { text: url ? `Endpoint: ${url}` : "Custom integration active" }),
+    ),
+    actions,
+  );
+}
+
 export function renderIntegrationCard(task: AgentTask, hooks: IntegrationCardHooks): HTMLElement {
+  if (task.id.startsWith("custom_")) {
+    return customCard(task, hooks.openSettings);
+  }
   if (task.id === "integration_n8n") {
     const hasActivity = task.steps.length > 0 && (task.state === "finished" || task.state === "error");
     return hooks.detailOpen && hasActivity

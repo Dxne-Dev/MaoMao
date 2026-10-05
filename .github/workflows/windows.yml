@@ -85,20 +85,21 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: github.event_name == 'workflow_dispatch' || env.PUBLISH == 'true'
         with:
-          name: Coucou-Windows-setup
-          path: windows/release/Coucou-Windows-${{ steps.pack.outputs.version }}-setup.exe
+          name: MaoMao-Windows-setup
+          path: windows/release/MaoMao-Windows-${{ steps.pack.outputs.version }}-setup.exe
           retention-days: 3
 
       # The unsigned NSIS installer is what Defender false-positives on, so the
       # bare binaries go up as well. hooks.rs already falls back to looking for
       # coucou-hook.exe next to coucou.exe, which is exactly this layout, so the
       # portable pair runs with working Claude Code hooks and no installer.
+      # `maomao.exe` is the app; `coucou-hook.exe` keeps the Claude Code contract.
       - uses: actions/upload-artifact@v4
         if: github.event_name == 'workflow_dispatch' || env.PUBLISH == 'true'
         with:
-          name: Coucou-Windows-portable
+          name: MaoMao-Windows-portable
           path: |
-            windows/target/release/coucou.exe
+            windows/target/release/maomao.exe
             windows/target/release/coucou-hook.exe
           retention-days: 3
 
@@ -110,9 +111,9 @@ jobs:
         run: |
           $v = "${{ steps.pack.outputs.version }}"
           $notes = @"
-          Coucou for Windows $v — Mochi at the top of your screen.
+          MaoMao for Windows $v.
 
-          Download ``Coucou-Windows-$v-setup.exe`` and run it. The installer is not
+          Download ``MaoMao-Windows-$v-setup.exe`` and run it. The installer is not
           code-signed yet, so Windows SmartScreen shows a warning: click
           **More info → Run anyway**.
           "@
@@ -121,8 +122,8 @@ jobs:
           # button points at /releases/latest. A Windows tag would silently send
           # Mac users to the .exe. The macOS `v*` releases own that slot.
           gh release create "${{ github.ref_name }}" `
-            "release/Coucou-Windows-$v-setup.exe" `
-            --title "Coucou for Windows $v" `
+            "release/MaoMao-Windows-$v-setup.exe" `
+            --title "MaoMao for Windows $v" `
             --notes $notes `
             --latest=false
 
@@ -140,12 +141,12 @@ jobs:
             # from it gets an old tree.
             git tag -f windows-latest "${{ github.sha }}"
             git push -f origin windows-latest
-            gh release edit windows-latest --title "Coucou for Windows (latest)" --notes "Always the newest Windows build — currently $v."
-            gh release upload windows-latest "release/Coucou-Windows-setup.exe" --clobber
+            gh release edit windows-latest --title "MaoMao for Windows (latest)" --notes "Always the newest Windows build — currently $v."
+            gh release upload windows-latest "release/MaoMao-Windows-setup.exe" --clobber
           } else {
             gh release create windows-latest `
-              "release/Coucou-Windows-setup.exe" `
-              --title "Coucou for Windows (latest)" `
+              "release/MaoMao-Windows-setup.exe" `
+              --title "MaoMao for Windows (latest)" `
               --notes "Always the newest Windows build — currently $v." `
               --latest=false
           }

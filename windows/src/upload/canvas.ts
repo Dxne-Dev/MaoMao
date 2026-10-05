@@ -1,9 +1,11 @@
 // The upload canvas — port of UploadCanvasView.swift.
 //
 // While the sequence engine is active this canvas draws the whole island body:
-// card, dashed drop frame, drop text, progress bar, the choose card, Mochi and
-// the file being sucked in. The island's own Mochi is hidden for the duration,
-// exactly as on macOS, because this canvas draws its own.
+// card, dashed drop frame, drop text, progress bar, the choose card, the mascot
+// and the file being sucked in. The island's own BotEngine canvas is hidden
+// for the duration, because this canvas draws its own silhouette (`drawMochi`).
+// That path is not BotEngine — change it together with src/mascot/ when swapping
+// the character.
 
 import { State } from "../core/state";
 import {
@@ -12,6 +14,29 @@ import {
 } from "./sequence";
 
 const FONT = 'system-ui, "Segoe UI Variable Text", "Segoe UI", sans-serif';
+
+const KEFF_RED = "#BD2828";
+const KEFF_WHITE = "#FAF8F5";
+const SKIN = "#DFC4AE";
+
+let uploadKeffTile: HTMLCanvasElement | null = null;
+function uploadKeffPattern(x: CanvasRenderingContext2D): CanvasPattern | null {
+  if (typeof document === "undefined") return null;
+  if (!uploadKeffTile) {
+    uploadKeffTile = document.createElement("canvas");
+    uploadKeffTile.width = uploadKeffTile.height = 16;
+    const t = uploadKeffTile.getContext("2d");
+    if (!t) return null;
+    t.fillStyle = KEFF_WHITE;
+    t.fillRect(0, 0, 16, 16);
+    t.fillStyle = KEFF_RED;
+    t.fillRect(0, 0, 8, 8);
+    t.fillRect(8, 8, 8, 8);
+    t.beginPath(); t.moveTo(8, 0); t.lineTo(16, 8); t.lineTo(8, 8); t.closePath(); t.fill();
+    t.beginPath(); t.moveTo(0, 8); t.lineTo(8, 16); t.lineTo(8, 8); t.closePath(); t.fill();
+  }
+  return x.createPattern(uploadKeffTile, "repeat");
+}
 
 /** Mirrors the reference `rr()`: a rounded rect, radius clamped to the box. */
 function rr(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
@@ -288,7 +313,7 @@ export class UploadCanvas {
     ctx.restore();
   }
 
-  // ── Mochi ─────────────────────────────────────────────────────────────────
+  // ── Mochi (MaoMao) ───────────────────────────────────────────────────────
 
   private drawMochi(ctx: CanvasRenderingContext2D, f: UploadFrame) {
     const R = f.d / 2 / 1.04;
@@ -301,27 +326,59 @@ export class UploadCanvas {
 
     const { rx, ry } = bodyPath(ctx, f.morph, R);
 
-    // Body.
+    // 1. Keffiyeh drapes behind
+    const kp = new Path2D();
+    kp.moveTo(-rx * 1.02, -ry * 0.45);
+    kp.bezierCurveTo(-rx * 1.05, -ry * 1.18, rx * 1.05, -ry * 1.18, rx * 1.02, -ry * 0.45);
+    kp.bezierCurveTo(rx * 0.85, -ry * 0.65, -rx * 0.85, -ry * 0.65, -rx * 1.02, -ry * 0.45);
+    kp.closePath();
+    for (const sd of [-1, 1]) {
+      kp.moveTo(sd * rx * 0.85, -ry * 0.50);
+      kp.bezierCurveTo(sd * rx * 1.25, -ry * 0.10, sd * rx * 1.28, ry * 0.50, sd * rx * 1.08, ry * 0.98);
+      kp.lineTo(sd * rx * 0.96, ry * 0.92);
+      kp.lineTo(sd * rx * 0.84, ry * 0.98);
+      kp.lineTo(sd * rx * 0.72, ry * 0.90);
+      kp.bezierCurveTo(sd * rx * 0.78, ry * 0.40, sd * rx * 0.85, -ry * 0.10, sd * rx * 0.68, -ry * 0.45);
+      kp.closePath();
+    }
+    ctx.fillStyle = KEFF_WHITE;
+    ctx.fill(kp);
+    ctx.save();
+    ctx.clip(kp);
+    const pat = uploadKeffPattern(ctx);
+    if (pat) {
+      ctx.fillStyle = pat;
+      ctx.fillRect(-rx * 1.5, -ry * 1.5, rx * 3, ry * 3);
+    }
+    ctx.restore();
+    ctx.strokeStyle = "rgba(0,0,0,0.15)";
+    ctx.lineWidth = 1;
+    ctx.stroke(kp);
+
+    // 2. Heather Grey Balaclava Body
     const bg = ctx.createLinearGradient(rx * 0.7, -ry * 0.9, -rx * 0.8, ry * 0.9);
-    bg.addColorStop(0, "#EDEDEF");
-    bg.addColorStop(1, "#C4C5CA");
+    bg.addColorStop(0, "#A8ADB8");
+    bg.addColorStop(0.5, "#8E939D");
+    bg.addColorStop(1, "#757A85");
     ctx.fillStyle = bg;
+    bodyPath(ctx, f.morph, R);
     ctx.fill();
 
-    // Edge shadow.
+    // Edge shadow
     const sg = ctx.createRadialGradient(0, 0, R * 0.2, 0, 0, R * 1.3);
     sg.addColorStop(0, "rgba(0,0,0,0)");
     sg.addColorStop(0.62, "rgba(0,0,0,0)");
-    sg.addColorStop(1, "rgba(0,0,0,0.12)");
+    sg.addColorStop(1, "rgba(0,0,0,0.18)");
     ctx.fillStyle = sg;
+    bodyPath(ctx, f.morph, R);
     ctx.fill();
 
-    // The body path is reused as a clip for everything drawn inside it.
+    // Body clip for mouth & eyes
     ctx.save();
     bodyPath(ctx, f.morph, R);
     ctx.clip();
 
-    // Top rim, once Mochi is box-shaped enough to have one.
+    // Top rim, once box-shaped enough
     if (mc > 0.3) {
       const a = Math.max(0, Math.min(1, (mc - 0.3) / 0.7));
       ctx.beginPath();
@@ -333,7 +390,7 @@ export class UploadCanvas {
       ctx.stroke();
     }
 
-    // Mouth hole.
+    // Mouth hole
     const mh = f.mouth * R * mc;
     if (mh > 0.3) {
       const mw = 2 * rx - 0.24 * R;
@@ -357,17 +414,18 @@ export class UploadCanvas {
       }
     }
 
-    // Eyes.
-    const ew = R * 0.25;
-    const eh = R * (0.62 - 0.16 * mc);
+    // 3. MaoMao Sleepy / Chill Eyes
+    const ew = R * 0.32;
+    const eh = R * (0.50 - 0.12 * mc);
     const ey = R * (0.02 + 0.28 * mc);
-    const sp = R * 0.3;
+    const sp = R * 0.36;
     const lx = f.lookX * R * (0.34 - 0.08 * mc);
     const ly = f.lookY * R * (0.16 - 0.09 * mc);
+
     for (const sd of [-1, 1]) {
       ctx.save();
       ctx.translate(sd * sp + lx, ey + ly);
-      drawEye(ctx, f.eye, ew, eh);
+      drawMaoMaoEye(ctx, f.eye, ew, eh);
       ctx.restore();
     }
 
@@ -449,41 +507,77 @@ export class UploadCanvas {
   }
 }
 
-// ── Eye shapes ──────────────────────────────────────────────────────────────
+function drawMaoMaoEye(ctx: CanvasRenderingContext2D, shape: UploadEyeShape, w: number, h: number) {
+  // 1. Padded beige rim
+  ctx.fillStyle = SKIN;
+  ctx.beginPath();
+  ctx.ellipse(0, 0, w * 1.08, h * 1.08, 0, 0, Math.PI * 2);
+  ctx.fill();
 
-const INK = "#0E0F12";
+  ctx.save();
+  ctx.beginPath();
+  ctx.ellipse(0, 0, w * 0.85, h * 0.86, 0, 0, Math.PI * 2);
+  ctx.clip();
 
-function drawEye(ctx: CanvasRenderingContext2D, shape: UploadEyeShape, w: number, h: number) {
-  switch (shape) {
-    case "pill":
-      ctx.fillStyle = INK;
-      rr(ctx, -w / 2, -h / 2, w, h, w / 2);
-      ctx.fill();
-      break;
+  // 2. Sclera
+  ctx.fillStyle = "#FAF8F5";
+  ctx.fillRect(-w, -h, w * 2, h * 2);
 
-    case "cup": {
-      // Flat top, semicircular bottom.
-      const hh = h * 0.55;
-      ctx.beginPath();
-      ctx.moveTo(-w / 2, -hh / 2);
-      ctx.lineTo(w / 2, -hh / 2);
-      ctx.lineTo(w / 2, hh / 2 - w / 2);
-      ctx.arc(0, hh / 2 - w / 2, w / 2, 0, Math.PI, false);
-      ctx.closePath();
-      ctx.fillStyle = INK;
-      ctx.fill();
-      break;
-    }
+  if (shape === "content") {
+    ctx.fillStyle = SKIN;
+    ctx.fillRect(-w, -h, w * 2, h * 2);
+    ctx.strokeStyle = "#16171A";
+    ctx.lineWidth = w * 0.42;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.arc(0, h * 0.20, w * 0.62, Math.PI * 1.15, Math.PI * 1.85);
+    ctx.stroke();
+  } else if (shape === "cup") {
+    // Wide open on gulp
+    const pupilR = Math.min(w, h) * 0.65;
+    ctx.fillStyle = "#16171A";
+    ctx.beginPath();
+    ctx.arc(0, 0, pupilR, 0, Math.PI * 2);
+    ctx.fill();
 
-    case "content":
-      ctx.beginPath();
-      ctx.arc(0, -h * 0.12, w * 0.85, Math.PI * 0.15, Math.PI * 0.85, false);
-      ctx.strokeStyle = INK;
-      ctx.lineWidth = w * 0.5;
-      ctx.lineCap = "round";
-      ctx.stroke();
-      break;
+    ctx.fillStyle = "rgba(255,255,255,0.95)";
+    ctx.beginPath();
+    ctx.arc(-pupilR * 0.35, -pupilR * 0.35, pupilR * 0.35, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    // Standard chill / sleepy eye with droopy eyelid
+    const pupilR = Math.min(w, h) * 0.52;
+    ctx.fillStyle = "#16171A";
+    ctx.beginPath();
+    ctx.arc(0, h * 0.12, pupilR, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Dual highlights
+    ctx.fillStyle = "rgba(255,255,255,0.92)";
+    ctx.beginPath();
+    ctx.arc(-pupilR * 0.32, h * 0.12 - pupilR * 0.32, pupilR * 0.30, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Droopy beige lid
+    const lidY = -h * 0.05;
+    ctx.fillStyle = SKIN;
+    ctx.beginPath();
+    ctx.moveTo(-w, -h);
+    ctx.lineTo(w, -h);
+    ctx.lineTo(w, lidY);
+    ctx.quadraticCurveTo(0, lidY + h * 0.1, -w, lidY);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = "rgba(90,60,40,0.35)";
+    ctx.lineWidth = Math.max(1, w * 0.06);
+    ctx.beginPath();
+    ctx.moveTo(-w * 0.75, lidY);
+    ctx.quadraticCurveTo(0, lidY + h * 0.1, w * 0.75, lidY);
+    ctx.stroke();
   }
+
+  ctx.restore();
 }
 
 // ── Document icon ───────────────────────────────────────────────────────────
