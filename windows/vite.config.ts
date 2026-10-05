@@ -43,6 +43,7 @@ function sharedSounds(): Plugin {
 }
 
 export default defineConfig({
+  base: "./",
   plugins: [sharedSounds()],
   clearScreen: false,
   server: { port: 1420, strictPort: true, host: "127.0.0.1" },
@@ -56,6 +57,7 @@ export default defineConfig({
       input: {
         island: resolve(__dirname, "index.html"),
         settings: resolve(__dirname, "settings.html"),
+        demo: resolve(__dirname, "demo.html"),
       },
     },
   },

@@ -456,15 +456,20 @@ h1.display-headline {
   font-weight: 600;
 }
 
-.sim-desktop {
-  background: radial-gradient(circle at top center, rgba(128, 128, 128, 0.08), transparent 70%), var(--bg);
-  padding: 40px 20px 60px;
-  min-height: 280px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
+.sim-iframe-wrap {
+  width: 100%;
+  height: 320px;
   position: relative;
+  background: radial-gradient(circle at top center, rgba(128, 128, 128, 0.08), transparent 70%), var(--bg);
+  overflow: hidden;
+}
+
+.sim-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
+  background: transparent;
 }
 
 /* Island HUD Component */
