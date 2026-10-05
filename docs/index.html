@@ -7,6 +7,17 @@
   <meta name="description" content="MaoMao garde un œil en direct sur vos sessions d'agents IA, vos déploiements et vos services cloud. HUD discret dans votre encoche ou Dynamic Island.">
   <link rel="icon" type="image/png" href="media/icon.png">
   <link rel="stylesheet" href="site.css">
+  <script>
+    // Theme initialization before rendering to avoid flash
+    (function() {
+      const saved = localStorage.getItem('maomao-theme');
+      if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
 </head>
 <body>
   <div class="wrap">
@@ -28,6 +39,9 @@
       </nav>
 
       <div class="nav-actions">
+        <button id="theme-toggle" class="theme-toggle-btn" title="Basculer Mode Clair / Sombre" aria-label="Basculer de thème">
+          ☀️
+        </button>
         <a href="https://github.com/Dxne-Dev/MaoMao" class="btn-nav-outline" target="_blank">
           GitHub
         </a>
@@ -197,5 +211,23 @@
     </footer>
 
   </div>
+
+  <script>
+    // Theme toggle interaction
+    const toggleBtn = document.getElementById('theme-toggle');
+    function updateToggleIcon() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      toggleBtn.textContent = isDark ? '🌙' : '☀️';
+    }
+    updateToggleIcon();
+
+    toggleBtn.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('maomao-theme', next);
+      updateToggleIcon();
+    });
+  </script>
 </body>
 </html>

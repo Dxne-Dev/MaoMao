@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=Roboto+Mono:wght@400;500&display=swap');
 
 :root {
-  /* Colors from DESIGN.md */
+  /* Colors from DESIGN.md - Light Mode (Default) */
   --color-forest-ink: #1a3300;
   --color-highlighter-yellow: #ffe95c;
   --color-cream-paper: #fcfaf5;
@@ -11,6 +11,10 @@
   --color-sticky-note-mint: #d5f5c2;
   --color-sticky-note-blush: #f6d0ff;
   --color-terracotta: #cb5521;
+  --color-subtle-text: #556b2f;
+  --color-card-border: #1a3300;
+  --color-chip-bg: #ffffff;
+  --color-nav-bg: #fcfaf5;
 
   /* Typography */
   --font-bricolage-grotesque: 'Bricolage Grotesque', ui-sans-serif, system-ui, sans-serif;
@@ -36,6 +40,25 @@
   --shadow-subtle-2: rgba(0, 0, 0, 0.1) 0px 1px 3px 0px, rgba(0, 0, 0, 0.1) 0px 1px 2px -1px;
 }
 
+/* Dark Mode Theme Tokens */
+html[data-theme="dark"] {
+  --color-forest-ink: #f0f4eb;
+  --color-highlighter-yellow: #ffe95c;
+  --color-cream-paper: #0e140d;
+  --color-pencil-gray: #2d382b;
+  --color-whisper-gray: #1b2419;
+  --color-sticky-note-teal: #143535;
+  --color-sticky-note-mint: #173318;
+  --color-sticky-note-blush: #361b3b;
+  --color-terracotta: #63260c;
+  --color-subtle-text: #9eb88d;
+  --color-card-border: #3b4d38;
+  --color-chip-bg: #141c12;
+  --color-nav-bg: #121a11;
+  --shadow-subtle: rgba(0, 0, 0, 0.4) 0px 2px 6px 0px;
+  --shadow-subtle-2: rgba(0, 0, 0, 0.6) 0px 4px 12px 0px;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -46,6 +69,7 @@ html {
   -webkit-text-size-adjust: 100%;
   scroll-behavior: smooth;
   background-color: var(--color-cream-paper);
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 body {
@@ -56,6 +80,7 @@ body {
   line-height: 1.5;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 a {
@@ -82,7 +107,7 @@ header {
   justify-content: space-between;
   gap: 16px;
   padding: 10px 18px;
-  background: var(--color-cream-paper);
+  background: var(--color-nav-bg);
   border: 1px solid var(--color-pencil-gray);
   border-radius: var(--radius-nav);
   margin-bottom: 56px;
@@ -90,6 +115,7 @@ header {
   top: 16px;
   z-index: 100;
   box-shadow: var(--shadow-subtle);
+  transition: background-color 0.25s ease, border-color 0.25s ease;
 }
 
 .brand {
@@ -108,7 +134,7 @@ header {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border: 1px solid var(--color-forest-ink);
+  border: 1px solid var(--color-card-border);
 }
 
 .brand-icon img {
@@ -149,6 +175,27 @@ nav a:hover, nav a.on {
   gap: 10px;
 }
 
+/* Mode Toggle Button */
+.theme-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-buttons);
+  border: 1px solid var(--color-pencil-gray);
+  background: transparent;
+  color: var(--color-forest-ink);
+  cursor: pointer;
+  font-size: 17px;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.theme-toggle-btn:hover {
+  background: rgba(128, 128, 128, 0.15);
+  transform: scale(1.05);
+}
+
 .btn-nav-outline {
   display: inline-flex;
   align-items: center;
@@ -157,7 +204,7 @@ nav a:hover, nav a.on {
   font-weight: 500;
   text-decoration: none;
   color: var(--color-forest-ink);
-  border: 1px solid var(--color-forest-ink);
+  border: 1px solid var(--color-card-border);
   border-radius: var(--radius-buttons);
   padding: 8px 16px;
   background: transparent;
@@ -165,7 +212,7 @@ nav a:hover, nav a.on {
 }
 
 .btn-nav-outline:hover {
-  background: rgba(26, 51, 0, 0.05);
+  background: rgba(128, 128, 128, 0.1);
   text-decoration: none;
 }
 
@@ -204,7 +251,7 @@ nav a:hover, nav a.on {
   gap: 6px;
   padding: 5px 12px;
   background: var(--color-highlighter-yellow);
-  color: var(--color-forest-ink);
+  color: #1a3300;
   border-radius: var(--radius-buttons);
   border: 1px solid rgba(26, 51, 0, 0.2);
   font-family: var(--font-inter);
@@ -248,6 +295,7 @@ h3 {
 /* Marker Pen Highlight */
 .highlight {
   background: var(--color-highlighter-yellow);
+  color: #1a3300;
   padding: 0 8px;
   border-radius: 4px;
   display: inline-block;
@@ -309,7 +357,7 @@ h3 {
   font-size: 16px;
   padding: 16px 28px;
   border-radius: var(--radius-buttons);
-  border: 1px solid var(--color-forest-ink);
+  border: 1px solid var(--color-card-border);
   text-decoration: none;
   transition: transform 0.15s ease;
 }
@@ -321,7 +369,7 @@ h3 {
 
 .reassurance-caption {
   font-size: 13px;
-  color: #556b2f;
+  color: var(--color-subtle-text);
   margin-bottom: 40px;
 }
 
@@ -345,7 +393,7 @@ h3 {
   padding: 4px 12px;
   border-radius: var(--radius-full);
   border: 1px solid var(--color-pencil-gray);
-  background: var(--color-cream-paper);
+  background: var(--color-nav-bg);
   font-family: var(--font-roboto-mono);
   font-size: 12px;
 }
@@ -353,8 +401,8 @@ h3 {
 /* Demo preview container */
 .preview-container {
   margin: 36px auto 64px;
-  background: var(--color-cream-paper);
-  border: 1px solid var(--color-forest-ink);
+  background: var(--color-nav-bg);
+  border: 1px solid var(--color-card-border);
   border-radius: var(--radius-cards);
   padding: 14px;
   box-shadow: var(--shadow-subtle-2);
@@ -397,9 +445,9 @@ h3 {
 .sticky-card {
   border-radius: var(--radius-cards);
   padding: 26px;
-  border: 1px solid var(--color-forest-ink);
+  border: 1px solid var(--color-card-border);
   position: relative;
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, background-color 0.25s ease;
 }
 
 .sticky-card:hover {
@@ -421,9 +469,16 @@ h3 {
 .card-yellow {
   background: var(--color-highlighter-yellow);
 }
+html[data-theme="dark"] .card-yellow {
+  color: #1a3300;
+}
+html[data-theme="dark"] .card-yellow h3,
+html[data-theme="dark"] .card-yellow p {
+  color: #1a3300;
+}
 
 .card-cream {
-  background: var(--color-cream-paper);
+  background: var(--color-nav-bg);
 }
 
 .card-tag {
@@ -435,7 +490,7 @@ h3 {
   margin-bottom: 12px;
   display: inline-block;
   padding: 2px 8px;
-  background: rgba(26, 51, 0, 0.08);
+  background: rgba(128, 128, 128, 0.15);
   border-radius: var(--radius-buttons);
 }
 
@@ -460,8 +515,8 @@ h3 {
   justify-content: center;
   gap: 12px;
   padding: 32px 24px;
-  background: var(--color-cream-paper);
-  border: 1px solid var(--color-forest-ink);
+  background: var(--color-nav-bg);
+  border: 1px solid var(--color-card-border);
   border-radius: var(--radius-cards);
   margin-bottom: 64px;
 }
@@ -471,8 +526,8 @@ h3 {
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: #ffffff;
-  border: 1px solid var(--color-forest-ink);
+  background: var(--color-chip-bg);
+  border: 1px solid var(--color-card-border);
   border-radius: var(--radius-buttons);
   font-family: var(--font-inter);
   font-size: 14px;
@@ -482,10 +537,10 @@ h3 {
 
 /* Code Snippet Box */
 .terminal-card {
-  background: #121c08;
+  background: #080c05;
   color: #f1f8eb;
   border-radius: var(--radius-cards);
-  border: 1px solid var(--color-forest-ink);
+  border: 1px solid var(--color-card-border);
   padding: 24px;
   font-family: var(--font-roboto-mono);
   font-size: 14px;
@@ -500,22 +555,22 @@ h3 {
 
 /* Document & Subpage formatting */
 .card {
-  background: var(--color-cream-paper);
-  border: 1px solid var(--color-forest-ink);
+  background: var(--color-nav-bg);
+  border: 1px solid var(--color-card-border);
   border-radius: var(--radius-cards);
   padding: 22px 26px;
   margin: 20px 0;
 }
 
 .meta {
-  color: #556b2f;
+  color: var(--color-subtle-text);
   font-size: 15px;
   margin-bottom: 24px;
 }
 
 .lang {
   display: inline-flex;
-  border: 1px solid var(--color-forest-ink);
+  border: 1px solid var(--color-card-border);
   border-radius: var(--radius-full);
   overflow: hidden;
   font-size: 13px;
@@ -529,8 +584,9 @@ h3 {
 }
 
 .lang a:first-child {
-  border-right: 1px solid var(--color-forest-ink);
+  border-right: 1px solid var(--color-card-border);
   background: var(--color-highlighter-yellow);
+  color: #1a3300;
   font-weight: 600;
 }
 
@@ -548,14 +604,14 @@ table {
   border-collapse: collapse;
   font-size: 15px;
   margin: 18px 0;
-  background: #ffffff;
-  border: 1px solid var(--color-forest-ink);
+  background: var(--color-chip-bg);
+  border: 1px solid var(--color-card-border);
   border-radius: 8px;
   overflow: hidden;
 }
 
 th, td {
-  border-bottom: 1px solid #e0dfd5;
+  border-bottom: 1px solid var(--color-pencil-gray);
   padding: 12px 14px;
   text-align: left;
   vertical-align: top;
@@ -568,7 +624,7 @@ th {
 }
 
 code {
-  background: #f0ede3;
+  background: rgba(128, 128, 128, 0.15);
   border: 1px solid var(--color-pencil-gray);
   border-radius: 4px;
   padding: 2px 6px;
