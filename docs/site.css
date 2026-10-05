@@ -374,12 +374,22 @@ h1.display-headline {
   color: var(--text);
 }
 
-.brand-svg {
-  width: 15px;
-  height: 15px;
-  display: inline-block;
+.brand-logo-img {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  object-fit: contain;
   vertical-align: middle;
-  fill: currentColor;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.chip-logo {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  object-fit: contain;
+  vertical-align: middle;
   flex-shrink: 0;
 }
 
