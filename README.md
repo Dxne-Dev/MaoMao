@@ -14,6 +14,8 @@ Validez les permissions, observez vos agents travailler, glissez-déposez des fi
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?logo=typescript&logoColor=white)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
 
+[🌐 **Site Web (GitHub Pages)**](https://dxne-dev.github.io/MaoMao/) · [📦 **Télécharger la dernière release**](https://github.com/Dxne-Dev/MaoMao/releases/latest)
+
 </div>
 
 ---
