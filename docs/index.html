@@ -10,12 +10,12 @@
   <script>
     // Theme initialization before rendering to avoid flash
     (function() {
-      const saved = localStorage.getItem('maomao-theme');
-      if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.setAttribute('data-theme', 'dark');
-      } else {
-        document.documentElement.setAttribute('data-theme', 'light');
-      }
+      try {
+        const saved = localStorage.getItem('maomao-theme');
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const theme = saved ? saved : (prefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) {}
     })();
   </script>
 </head>
@@ -39,9 +39,12 @@
       </nav>
 
       <div class="nav-actions">
-        <button id="theme-toggle" class="theme-toggle-btn" title="Basculer Mode Clair / Sombre" aria-label="Basculer de thème">
-          ☀️
+        <!-- Theme Toggle with Sun / Moon SVG icons -->
+        <button id="theme-toggle" class="theme-toggle-btn" title="Basculer le mode clair / sombre" aria-label="Basculer le thème">
+          <svg id="sun-icon" viewBox="0 0 24 24" style="display:none;"><path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/></svg>
+          <svg id="moon-icon" viewBox="0 0 24 24"><path d="M12.3 2a10 10 0 0 0-.19 20 10 10 0 0 0 8.89-5.43 1 1 0 0 0-1.25-1.38 8 8 0 1 1-7.83-11.81 1 1 0 0 0 .38-1.38A1 1 0 0 0 12.3 2z"/></svg>
         </button>
+
         <a href="https://github.com/Dxne-Dev/MaoMao" class="btn-nav-outline" target="_blank">
           GitHub
         </a>
@@ -54,7 +57,8 @@
     <!-- Hero Section -->
     <section class="hero">
       <div class="tagline-badge">
-        <span>✦</span> v0.1.1 disponible · 100% Local & Open Source
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6 4.6 2.3 7.4-6.3-4.6-6.3 4.6L8 14l-6-4.6h7.6z"/></svg>
+        v0.1.1 disponible · 100% Local & Open Source
       </div>
 
       <h1 class="display-headline">
@@ -76,16 +80,51 @@
 
       <p class="reassurance-caption">Gratuit · Aucun compte requis · Vos clés restent sur votre machine</p>
 
-      <!-- Compatible strip -->
+      <!-- Compatible strip with real brand SVGs -->
       <div class="compatible-strip">
         <span>Compatible avec :</span>
-        <span class="compatible-pill">⚡ Claude Code</span>
-        <span class="compatible-pill">🤖 OpenAI Codex</span>
-        <span class="compatible-pill">🚀 Antigravity</span>
-        <span class="compatible-pill">💻 Cursor</span>
-        <span class="compatible-pill">✨ Gemini CLI</span>
-        <span class="compatible-pill">🪟 Windows 10/11</span>
-        <span class="compatible-pill">🍏 macOS 15+</span>
+        
+        <!-- Claude Code / Anthropic -->
+        <span class="compatible-pill">
+          <svg class="brand-svg" viewBox="0 0 24 24"><path d="M17.47 3H6.53L1.5 12l5.03 9h10.94l5.03-9-5.03-9zm-1.8 14.5H8.33L5.3 12l3.03-5.5h7.34l3.03 5.5-3.03 5.5z"/></svg>
+          Claude Code
+        </span>
+
+        <!-- OpenAI Codex -->
+        <span class="compatible-pill">
+          <svg class="brand-svg" viewBox="0 0 24 24"><path d="M22.28 9.47a5.55 5.55 0 0 0-.47-4.52 5.67 5.67 0 0 0-5.83-2.73A5.55 5.55 0 0 0 11.9.5a5.67 5.67 0 0 0-5.4 3.9 5.57 5.57 0 0 0-3.9 2.82 5.67 5.67 0 0 0 .57 6.4 5.55 5.55 0 0 0 .47 4.52 5.67 5.67 0 0 0 5.83 2.73 5.55 5.55 0 0 0 4.08 1.72 5.67 5.67 0 0 0 5.4-3.9 5.57 5.57 0 0 0 3.9-2.82 5.67 5.67 0 0 0-.57-6.4zM12 18.7a3.7 3.7 0 1 1 3.7-3.7 3.7 3.7 0 0 1-3.7 3.7z"/></svg>
+          Codex
+        </span>
+
+        <!-- Antigravity -->
+        <span class="compatible-pill">
+          <svg class="brand-svg" viewBox="0 0 24 24"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/></svg>
+          Antigravity
+        </span>
+
+        <!-- Cursor -->
+        <span class="compatible-pill">
+          <svg class="brand-svg" viewBox="0 0 24 24"><path d="M4 2l15 10.5-7.5 1.5-4 7L4 2z"/></svg>
+          Cursor
+        </span>
+
+        <!-- Windows -->
+        <span class="compatible-pill">
+          <svg class="brand-svg" viewBox="0 0 24 24"><path d="M0 3.45L9.75 2.1v9.23H0V3.45zm0 8.62h9.75v9.23L0 19.95v-7.88zM10.95 1.94L24 0v11.33H10.95V1.94zm0 9.39H24v11.33L10.95 20.7v-9.37z"/></svg>
+          Windows
+        </span>
+
+        <!-- Apple -->
+        <span class="compatible-pill">
+          <svg class="brand-svg" viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.85c.62-.76 1.05-1.81.93-2.85-.92.04-2.02.62-2.67 1.38-.58.66-1.08 1.74-.95 2.76 1.03.08 2.06-.53 2.69-1.29z"/></svg>
+          macOS
+        </span>
+
+        <!-- Linux -->
+        <span class="compatible-pill">
+          <svg class="brand-svg" viewBox="0 0 24 24"><path d="M12 2C8.5 2 7 5 7 8c0 2 .5 4 1 5-1 1-3 3-3 6 0 2 2 3 5 3s4-.5 4-.5 1 .5 4 .5 5-1 5-3c0-3-2-5-3-6 .5-1 1-3 1-5 0-3-1.5-6-5-6zm-2 7a1 1 0 1 1 0-2 1 1 0 0 1 0 2zm4 0a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/></svg>
+          Linux
+        </span>
       </div>
 
       <!-- Preview container -->
@@ -94,72 +133,139 @@
       </div>
     </section>
 
-    <!-- Features (Sticky Notes Grid) -->
+    <!-- Features Grid -->
     <section id="features">
       <h2 class="section-heading">Conçu pour vos flux de travail IA</h2>
-      <p class="section-subhead">Chaque détail a été pensé pour vous faire gagner du temps et vous offrir une visibilité instantanée.</p>
+      <p class="section-subhead">Chaque composant apporte une visibilité instantanée et un contrôle précis sans encombrer votre écran.</p>
 
       <div class="card-grid">
-        <!-- Mint Sticky Note Card -->
-        <div class="sticky-card card-mint">
-          <span class="card-tag">Interface</span>
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <div class="card-icon-box">
+              <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <span class="card-tag">Interface</span>
+          </div>
           <h3>HUD & Dynamic Island</h3>
           <p>Se loge parfaitement dans l'encoche de votre MacBook ou flotte élégamment en haut de votre écran Windows sous forme d'îlot dynamique interactif.</p>
         </div>
 
-        <!-- Yellow Sticky Note Card -->
-        <div class="sticky-card card-yellow">
-          <span class="card-tag">Temps Réel</span>
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <div class="card-icon-box">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+            </div>
+            <span class="card-tag">Temps Réel</span>
+          </div>
           <h3>Suivi des Agents IA</h3>
-          <p>Détection automatique des sessions Claude Code, Codex, Antigravity, Cursor et Gemini. Observez leurs étapes, leurs réflexions et leurs coûts sans encombrer votre terminal.</p>
+          <p>Détection automatique des sessions Claude Code, Codex, Antigravity, Cursor et Gemini. Observez leurs étapes, leurs réflexions et leurs coûts sans ouvrir le terminal.</p>
         </div>
 
-        <!-- Teal Sticky Note Card -->
-        <div class="sticky-card card-teal">
-          <span class="card-tag">Contrôle</span>
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <div class="card-icon-box">
+              <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <span class="card-tag">Contrôle</span>
+          </div>
           <h3>Validation en 1 Clic</h3>
           <p>Approuvez ou refusez les demandes de permission (commandes bash, écriture de fichiers) directement depuis l'îlot, sans changer d'application ni perdre le focus.</p>
         </div>
 
-        <!-- Blush Sticky Note Card -->
-        <div class="sticky-card card-blush">
-          <span class="card-tag">Productivité</span>
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <div class="card-icon-box">
+              <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </div>
+            <span class="card-tag">Productivité</span>
+          </div>
           <h3>Glisser-Déposer Instantané</h3>
           <p>Déposez n'importe quel fichier, capture d'écran ou document sur MaoMao pour déclencher immédiatement une analyse IA ou une transcription OCR.</p>
         </div>
 
-        <!-- Cream Card -->
-        <div class="sticky-card card-cream">
-          <span class="card-tag">Sécurité</span>
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <div class="card-icon-box">
+              <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <span class="card-tag">Sécurité</span>
+          </div>
           <h3>100% Local & Privé</h3>
           <p>Aucun compte, aucun serveur distant, zéro pistage. Vos clés API restent sécurisées dans le Windows Credential Manager ou le trousseau macOS.</p>
         </div>
 
-        <!-- Mint Card -->
-        <div class="sticky-card card-mint">
-          <span class="card-tag">Performance</span>
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <div class="card-icon-box">
+              <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </div>
+            <span class="card-tag">Performance</span>
+          </div>
           <h3>Ultra Léger & Fluide</h3>
           <p>Construit en Rust avec Tauri v2. Moins de 30 Mo de RAM, démarrage instantané et animations à 60 FPS sans ralentir votre machine.</p>
         </div>
       </div>
     </section>
 
-    <!-- Integrations -->
+    <!-- Integrations with official Brand SVGs -->
     <section id="integrations">
       <h2 class="section-heading">Connectez vos services préférés</h2>
       <p class="section-subhead">Suivez l'état de votre infrastructure et de vos projets en un coup d'œil.</p>
 
       <div class="integrations-cluster">
-        <span class="chip">💳 Stripe MRR</span>
-        <span class="chip">🐙 GitHub Actions</span>
-        <span class="chip">▲ Vercel Deployments</span>
-        <span class="chip">⚡ Supabase</span>
-        <span class="chip">🚂 Railway</span>
-        <span class="chip">🔄 n8n Workflows</span>
-        <span class="chip">🪲 Sentry Errors</span>
-        <span class="chip">📊 Datadog</span>
-        <span class="chip">☁️ Coolify</span>
-        <span class="chip">📨 Resend</span>
+        <!-- Stripe -->
+        <span class="chip">
+          <svg viewBox="0 0 24 24"><path d="M13.976 9.15c-2.172-.806-3.356-1.426-3.356-2.409 0-.831.683-1.305 1.901-1.305 2.227 0 4.515.858 6.09 1.631l.89-5.494C18.252.975 15.697.5 12.521.5 6.845.5 3.2 3.518 3.2 8.441c0 5.753 7.828 5.485 7.828 8.685 0 .979-.834 1.545-2.227 1.545-2.28 0-5.184-1.127-7.23-2.229L.68 21.84c2.274 1.258 5.688 2.16 8.846 2.16 5.864 0 9.774-2.88 9.774-8.084 0-5.938-7.828-5.75-7.828-8.766z"/></svg>
+          Stripe
+        </span>
+
+        <!-- GitHub -->
+        <span class="chip">
+          <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub Actions
+        </span>
+
+        <!-- Vercel -->
+        <span class="chip">
+          <svg viewBox="0 0 24 24"><path d="M12 1L24 22H0L12 1z"/></svg>
+          Vercel
+        </span>
+
+        <!-- Supabase -->
+        <span class="chip">
+          <svg viewBox="0 0 24 24"><path d="M21.362 9.354H12V.396a.396.396 0 0 0-.716-.233L.38 14.25a.396.396 0 0 0 .316.636H12v8.718a.396.396 0 0 0 .716.233l10.904-14.087a.396.396 0 0 0-.258-.396z"/></svg>
+          Supabase
+        </span>
+
+        <!-- Railway -->
+        <span class="chip">
+          <svg viewBox="0 0 24 24"><path d="M2.5 19h19v2.5H2.5zm0-14h19V7.5H2.5zm2.5 3.5h14c1.1 0 2 .9 2 2v4c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2v-4c0-1.1.9-2 2-2zm2 5.5a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm10 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/></svg>
+          Railway
+        </span>
+
+        <!-- n8n -->
+        <span class="chip">
+          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14.5v-3.8l3.3 1.9-1 1.7zm-2-3.8v3.8l-2.3.2-1-1.7zm-4.3-3.7l3.3-1.9v3.8l-3.3-1.9zm5.3-1.9l3.3 1.9-3.3 1.9V7.1z"/></svg>
+          n8n
+        </span>
+
+        <!-- Sentry -->
+        <span class="chip">
+          <svg viewBox="0 0 24 24"><path d="M13.2 2a1 1 0 0 0-1.7 0L.3 21a1 1 0 0 0 .85 1.5h21.7a1 1 0 0 0 .85-1.5L13.2 2zm-1.2 5l6.7 12H5.3L12 7z"/></svg>
+          Sentry
+        </span>
+
+        <!-- Datadog -->
+        <span class="chip">
+          <svg viewBox="0 0 24 24"><path d="M19.4 6.8c-.3-.4-.8-.7-1.3-.8-1-.3-2.1.2-2.5 1.1-.3.7-.2 1.5.3 2.1.4.5 1 .8 1.7.8.2 0 .4 0 .6-.1-.1.4-.4.8-.8 1-.5.3-1.1.3-1.7.1-.4-.1-.8-.4-1-.7-.4-.5-.4-1.2-.1-1.8.4-.7 1.1-1.1 1.9-1.1.3 0 .7.1 1 .2l.7-1.8c-.5-.2-1.1-.4-1.7-.4-1.5 0-2.9.8-3.6 2.1-.6 1.1-.6 2.4.1 3.5.6.9 1.6 1.5 2.7 1.6.4 0 .9 0 1.3-.1 1.1-.3 2-1 2.5-2 .4-.9.4-1.9 0-2.8-.2-.3-.5-.7-.9-.8zM12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2z"/></svg>
+          Datadog
+        </span>
+
+        <!-- Resend -->
+        <span class="chip">
+          <svg viewBox="0 0 24 24"><path d="M22 6c0-1.1-.9-2-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6zm-2 0l-8 5-8-5h16zm0 12H4V8l8 5 8-5v10z"/></svg>
+          Resend
+        </span>
       </div>
     </section>
 
@@ -169,10 +275,12 @@
       <p class="section-subhead">Téléchargez l'application précompilée ou lancez-la depuis les sources.</p>
 
       <div class="card-grid">
-        <div class="sticky-card card-cream">
-          <span class="card-tag">Option 1</span>
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <span class="card-tag">Option 1</span>
+          </div>
           <h3>Téléchargement Direct</h3>
-          <p>Installez la version officielle pour votre système en un clic depuis notre page de releases :</p>
+          <p>Installez la version officielle pour Windows ou macOS en un clic depuis notre page de releases :</p>
           <div style="margin-top: 18px;">
             <a href="https://github.com/Dxne-Dev/MaoMao/releases/latest" class="btn-primary-cta">
               Accéder à la dernière release →
@@ -180,8 +288,10 @@
           </div>
         </div>
 
-        <div class="sticky-card card-cream">
-          <span class="card-tag">Option 2</span>
+        <div class="feature-card">
+          <div class="feature-card-header">
+            <span class="card-tag">Option 2</span>
+          </div>
           <h3>Compiler depuis les sources</h3>
           <p>Clonez le dépôt et lancez le projet avec Tauri :</p>
           <div class="terminal-card">
@@ -213,21 +323,36 @@
   </div>
 
   <script>
-    // Theme toggle interaction
-    const toggleBtn = document.getElementById('theme-toggle');
-    function updateToggleIcon() {
-      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      toggleBtn.textContent = isDark ? '🌙' : '☀️';
-    }
-    updateToggleIcon();
+    (function() {
+      const toggleBtn = document.getElementById('theme-toggle');
+      const sunIcon = document.getElementById('sun-icon');
+      const moonIcon = document.getElementById('moon-icon');
 
-    toggleBtn.addEventListener('click', () => {
-      const current = document.documentElement.getAttribute('data-theme');
-      const next = current === 'dark' ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', next);
-      localStorage.setItem('maomao-theme', next);
-      updateToggleIcon();
-    });
+      function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        document.body.setAttribute('data-theme', theme);
+        if (theme === 'dark') {
+          sunIcon.style.display = 'block';
+          moonIcon.style.display = 'none';
+        } else {
+          sunIcon.style.display = 'none';
+          moonIcon.style.display = 'block';
+        }
+      }
+
+      // Initial state
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+      applyTheme(currentTheme);
+
+      toggleBtn.addEventListener('click', function() {
+        const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+        const next = current === 'dark' ? 'light' : 'dark';
+        applyTheme(next);
+        try {
+          localStorage.setItem('maomao-theme', next);
+        } catch (e) {}
+      });
+    })();
   </script>
 </body>
 </html>
